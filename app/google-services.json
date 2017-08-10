@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "747308865954",
+    "firebase_url": "https://toado-9293d.firebaseio.com",
+    "project_id": "toado-9293d",
+    "storage_bucket": "toado-9293d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:747308865954:android:8aa21733def99f60",
+        "android_client_info": {
+          "package_name": "com.app.toado"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "747308865954-3i446965ilbckdbs8go7uq62iaos89t7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.toado",
+            "certificate_hash": "c6bbc11324d807372294c27aa1e61964a897e209"
+          }
+        },
+        {
+          "client_id": "747308865954-9458kbko2u8ohb38spc498lesvofpja2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBseIFqxpnl7v_BK-mQ6Ht4Zu-scABwV50"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "747308865954-9458kbko2u8ohb38spc498lesvofpja2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

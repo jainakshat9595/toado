@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:mContext="com.app.toado.activity.chat.ChatActivity">
+    <item
+        android:id="@+id/action_delete"
+        android:icon="@mipmap/ic_delete_white_24dp"
+        android:orderInCategory="100"
+        android:title="Delete"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_forward"
+        android:icon="@mipmap/ic_forward_message"
+        android:orderInCategory="100"
+        android:title="Forward"
+        app:showAsAction="always" />
+
+</menu>

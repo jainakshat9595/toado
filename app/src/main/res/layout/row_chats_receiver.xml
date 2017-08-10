@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingRight="60dp"
+    android:paddingTop="3dp"
+    android:paddingLeft="2dp" >
+
+    <android.support.design.widget.CoordinatorLayout
+        android:id="@+id/imgchatrel"
+        android:background="@drawable/msgreceiverbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+         android:padding="5dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:scaleType="fitXY"
+            android:id="@+id/imgchat"
+            android:layout_width="250dp"
+            android:layout_height="280dp"
+            android:background="#ffffff"
+            android:src="@drawable/whatsapplogo"
+            android:visibility="visible"></ImageView>
+
+        <ProgressBar
+            android:id="@+id/progressbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/btndown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/commentString"
+            android:layout_gravity="center"
+            android:background="#90000000"
+            android:src="@drawable/downloadicon"
+            android:text="Download"
+            android:visibility="visible" />
+
+        <TextView
+            android:textColor="@color/white"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:layout_gravity="end|bottom"
+            android:id="@+id/timestampnotext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2:46 PM" />
+
+    </android.support.design.widget.CoordinatorLayout>
+
+    <LinearLayout
+        android:id="@+id/msglay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/imgchatrel"
+        android:layout_below="@+id/imgchatrel"
+        android:background="@drawable/msgreceiverbox"
+        android:gravity="start"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:weightSum="2">
+
+        <TextView
+            android:layout_marginRight="8dp"
+            android:layout_weight="2"
+            android:id="@+id/commentString"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/imgchatrel"
+            android:layout_marginTop="5dp"
+            android:gravity="start"
+            android:text="hi"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+        <TextView
+            android:textSize="10sp"
+            android:layout_gravity="bottom"
+            android:id="@+id/meSender_TimeStamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/commentString"
+            android:text="2:46 PM" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#ffffff"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/padding_list_row"
+    android:id="@+id/relcontact"
+    android:paddingLeft="?listPreferredItemPaddingLeft"
+    android:paddingRight="?listPreferredItemPaddingRight"
+    android:paddingTop="@dimen/padding_list_row">
+
+    <TextView
+        android:id="@+id/tvcontactname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/imgcontact"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="contact name"
+        android:textColor="#000000"
+        android:textSize="@dimen/msg_text_primary"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_below="@+id/tvcontactname"
+        android:id="@+id/tvcontactnum"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/imgcontact"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="number"
+        android:textColor="#000000"
+        android:textSize="@dimen/msg_text_primary"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:layout_centerVertical="true"
+        android:id="@+id/imgcontact"
+        android:layout_width="@dimen/icon_width_height"
+        android:layout_height="@dimen/icon_width_height"
+        android:src="@drawable/bg_circle" />
+
+
+</RelativeLayout>

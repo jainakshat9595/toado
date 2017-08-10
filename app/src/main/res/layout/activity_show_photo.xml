@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:gesture-image="http://schemas.polites.com/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/relsingle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/ivGridLines"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="top|right"
+            android:adjustViewBounds="true"
+            android:onClick="cropImage"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/iconcrop"
+            android:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/icon_profile"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="5dp"
+            android:layout_toRightOf="@+id/imgback"
+            android:background="@drawable/bg_circle" />
+
+        <ImageView
+            android:id="@+id/imgback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerVertical="true"
+            android:layout_margin="5dp"
+            android:onClick="onBack"
+            android:padding="5dp"
+            android:src="@drawable/ic_arrow_back" />
+
+        <RelativeLayout
+            android:id="@+id/bottomlay1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:background="#393D42">
+
+            <EditText
+                android:id="@+id/typeComment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#99000000"
+                android:hint="Add a caption..."
+                android:maxLines="2"
+                android:paddingBottom="5dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="80dp"
+                android:paddingTop="40dp"
+                android:scrollbars="vertical"
+                android:text=""
+                android:textColor="@color/white"
+                android:textColorHint="#999999"
+                android:textSize="20sp" />
+
+        </RelativeLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="41dp"
+            android:layout_marginEnd="22dp"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/rippleffect"
+            android:clickable="true"
+            android:onClick="sendPic"
+            app:backgroundTint="#00897B"
+            app:fabSize="normal"
+            app:srcCompat="@drawable/iconsend" />
+
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/relmultiple"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <ImageView
+            android:id="@+id/ivImagemulitiple"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center" />
+
+        <ImageView
+            android:id="@+id/ivcropmultiple"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="top|right"
+            android:adjustViewBounds="true"
+            android:onClick="cropImage"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/iconcrop"
+            android:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/icon_profilemultiple"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="5dp"
+            android:layout_toRightOf="@+id/imgbackmultiple"
+            android:background="@drawable/bg_circle" />
+
+        <ImageView
+            android:id="@+id/imgbackmultiple"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerVertical="true"
+            android:layout_margin="5dp"
+            android:onClick="onBack"
+            android:padding="5dp"
+            android:src="@drawable/ic_arrow_back" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclermultiple"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/imgbackmultiple"
+            android:paddingTop="10dp"></android.support.v7.widget.RecyclerView>
+
+        <RelativeLayout
+            android:id="@+id/bottomlay2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="#393D42"
+            android:paddingLeft="5dp">
+
+            <EditText
+                android:id="@+id/typeComment2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:background="#99000000"
+                android:hint="Add a caption..."
+                android:maxLines="5"
+                android:paddingBottom="5dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="80dp"
+                android:paddingTop="40dp"
+                android:scrollbars="vertical"
+                android:text=""
+                android:textColor="@color/white"
+                android:textColorHint="#999999"
+                android:textSize="20sp"></EditText>
+        </RelativeLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/sendButton2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="41dp"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/rippleffect"
+            android:clickable="true"
+            android:onClick="sendPic"
+            app:backgroundTint="#00897B"
+            app:fabSize="normal"
+            app:srcCompat="@drawable/iconsend"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="22dp" />
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/ivImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/relmultiple"
+        android:layout_gravity="center" />
+
+</RelativeLayout>

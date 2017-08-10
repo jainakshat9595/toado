@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#ffffff"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/padding_list_row"
+    android:id="@+id/relcontact"
+    android:paddingLeft="?listPreferredItemPaddingLeft"
+    android:paddingRight="?listPreferredItemPaddingRight"
+    android:paddingTop="@dimen/padding_list_row">
+
+    <TextView
+        android:id="@+id/tvcontactname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/imgcontact"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="name"
+        android:textColor="#000000"
+        android:textSize="@dimen/msg_text_primary"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvcallduration"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/imgcontact"
+        android:layout_below="@+id/tvcontactname"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="duration"
+        android:textColor="#000000"
+        android:textSize="@dimen/msg_text_primary"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvcalltype"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/imgcontact"
+        android:layout_below="@+id/tvcallduration"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="call duration"
+        android:textColor="#000000"
+        android:textSize="@dimen/msg_text_primary"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvcallstatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/imgcontact"
+        android:layout_below="@+id/tvcalltype"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="call status"
+        android:textColor="#000000"
+        android:textSize="@dimen/msg_text_primary"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvcalltimestamp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/imgcontact"
+        android:layout_below="@+id/tvcallstatus"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="timestamp"
+        android:textColor="#000000"
+        android:textSize="@dimen/msg_text_primary"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:layout_centerVertical="true"
+        android:id="@+id/imgcontact"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/bg_circle" />
+
+
+</RelativeLayout>
