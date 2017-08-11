@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:orientation="vertical">
+
+    <ImageView
+        android:layout_margin="5dp"
+        android:id="@+id/ivSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="top|right"
+        android:adjustViewBounds="true"
+        android:onClick="openMediaMenu"
+        android:padding="5dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/icondots"
+        android:visibility="visible" />
+
+    <ImageView
+        android:layout_margin="5dp"
+        android:id="@+id/ivForward"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/ivSettings"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="top|right"
+        android:adjustViewBounds="true"
+        android:padding="5dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/iconforward"
+        android:visibility="visible" />
+
+    <ImageView
+        android:layout_margin="5dp"
+        android:id="@+id/ivStar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/ivForward"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="top|right"
+        android:adjustViewBounds="true"
+        android:padding="5dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/iconstar"
+        android:visibility="visible" />
+
+    <TextView
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:id="@+id/tvname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="You"
+        android:textColor="@color/white"
+        android:textSize="20dp"
+        android:layout_above="@+id/ivImage"
+        android:layout_toEndOf="@+id/imgback" />
+
+    <TextView
+        android:layout_below="@+id/tvname"
+        android:layout_marginTop="10dp"
+        android:id="@+id/tvtime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="June 2, 2018 8:19 PM"
+        android:textColor="@color/white"
+        android:textSize="16dp"
+        android:layout_above="@+id/ivImage"
+        android:layout_toEndOf="@+id/imgback" />
+
+    <ImageView
+        android:id="@+id/imgback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerVertical="true"
+        android:layout_margin="5dp"
+        android:onClick="onBack"
+        android:padding="5dp"
+        android:src="@drawable/ic_arrow_back" />
+
+    <com.app.toado.activity.chat.ZoomableImageView
+        android:id="@+id/imgv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:layout_marginBottom="20dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="10dp"
+        android:id="@+id/tvcaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="caption"
+        android:padding="10dp"
+        android:textColor="@color/white"
+        android:textSize="18dp"   />
+
+</RelativeLayout>

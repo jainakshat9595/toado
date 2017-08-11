@@ -85,13 +85,10 @@ public class ChatActivity extends ToadoBaseActivity {
     private String otheruserkey;
     LinearLayoutManager linearLayoutManager;
     private MarshmallowPermissions marshmallowPermissions;
-    private ArrayList<String> mResults = new ArrayList<>();
     private ActionMode actionMode;
     UploadFileService uploadFileService;
     boolean mServiceBound = false;
-    SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy hh:mm aa");
     private ChatAdapter1 mAdapter;
-    LinkedHashSet<ChatMessageRealm> uniqueStrings = new LinkedHashSet<ChatMessageRealm>();
     private ArrayList<ChatMessageRealm> chatList = new ArrayList<>();
     private ArrayList<String> chatListIds = new ArrayList<>();
     String username, mykey;
@@ -100,19 +97,12 @@ public class ChatActivity extends ToadoBaseActivity {
     boolean clicked;
     LinearLayout layoutToAdd, layoutToAdd2;
     LinearLayout commentView;
-    private ChildEventListener dbChatlistener;
     ImageButton galleryattach, galleryattach2;
-    public String dbTableKey;
-    EncryptUtils encryptUtils = new EncryptUtils();
-    private ImageButton imgdocattach;
-    private ImageButton locattach;
     private LinearLayout spamView;
     TextView tvTitle;
     ImageView imgprof;
-    private ArrayList<String> imagesPathList;
     private ProgressBar progressBar;
     UserMediaPrefs umprefs;
-    private Boolean mBounded;
     private String TAG = "ChatActivity";
     Realm mRealm;
     Boolean chatexists;
@@ -131,6 +121,7 @@ public class ChatActivity extends ToadoBaseActivity {
     RelativeLayout chatlay;
     Boolean bolkeypad = false;
     private ImageButton takephoto2;
+    int in;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -204,15 +195,30 @@ public class ChatActivity extends ToadoBaseActivity {
             public void onClick(View v) {
                 Log.d(TAG, "Multiple images called " + MULTIPLE_IMAGE_SELECT);
                 Intent intent = new Intent();
+                intent.setType("video/*, images/*");
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Images"), MULTIPLE_IMAGE_SELECT);
+                layoutToAdd.setVisibility(View.GONE);
+                layoutToAdd2.setVisibility(View.GONE);
+            }
+        });
+
+        galleryattach2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "Multiple images called 2 " + MULTIPLE_IMAGE_SELECT);
+                Intent intent = new Intent();
                 intent.setType("image/* video/*");
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(Intent.createChooser(intent, "Select Images"), MULTIPLE_IMAGE_SELECT);
+                layoutToAdd.setVisibility(View.GONE);
+                layoutToAdd2.setVisibility(View.GONE);
             }
         });
 
         myxinstance = MyXMPP2.getInstance(ChatActivity.this, getString(R.string.server), mykey);
-
         mAdapter = new ChatAdapter1(chatList, this, otheruserkey, GetTimeStamp.timeStampDate());
         recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         linearLayoutManager = new LinearLayoutManager(this);
@@ -282,8 +288,6 @@ public class ChatActivity extends ToadoBaseActivity {
                 }
             }
         });
-
-
 
 /*
         videoattach.setOnClickListener(new View.OnClickListener() {
@@ -470,23 +474,23 @@ public class ChatActivity extends ToadoBaseActivity {
                         }
                     }
                 } else if (requestCode == MULTIPLE_IMAGE_SELECT) {
-                    Log.d(TAG, "multiple image select data"+data.getData());
+                    Log.d(TAG, "multiple image select data" + data.getData());
 
                     String[] filePathColumn = {MediaStore.Images.Media.DATA};
                     imagesEncodedList = new ArrayList<String>();
                     if (data.getClipData() == null) {
 
                         Uri mImageUri = data.getData();
-                        Log.d(TAG, "mimageuri "+mImageUri);
+                        Log.d(TAG, "mimageuri " + mImageUri);
                         // Get the cursor
                         Intent intent = new Intent(this, ShowPhotoActivity.class);
-                        intent.putExtra("path1", UriHelper.getPath(ChatActivity.this,mImageUri));
+                        intent.putExtra("path1", UriHelper.getPath(ChatActivity.this, mImageUri));
                         intent.putExtra("username", otherusername);
                         intent.putExtra("otheruserkey", otheruserkey);
                         intent.putExtra("mykey", mykey);
                         startActivity(intent);
 
-                        Log.d(TAG,imageEncoded+" imageencoded");
+                        Log.d(TAG, imageEncoded + " imageencoded");
                     } else {
                         if (data.getClipData() != null) {
                             ClipData mClipData = data.getClipData();
@@ -694,6 +698,13 @@ public class ChatActivity extends ToadoBaseActivity {
         layoutToAdd2.setVisibility(View.GONE);
         Intent in = new Intent(this, CamActivity.class);
         startImageComment(in);
+        layoutToAdd.setVisibility(View.GONE);
+        layoutToAdd2.setVisibility(View.GONE);
+
+    }
+
+    public void onBack(View view) {
+        finish();
     }
 
 }

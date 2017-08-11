@@ -52,7 +52,7 @@ public class ShowPhotoActivity extends Activity {
     RelativeLayout relsingle, relmultiple;
     ShowPhotoAdapter mAdapter;
     private String imagePath1;
-    ArrayList<String> arrstrings;
+    String[] arrstrings;
     TextView tvcomment2;
 
     @Override
@@ -71,12 +71,12 @@ public class ShowPhotoActivity extends Activity {
         relmultiple = (RelativeLayout) findViewById(R.id.relmultiple);
 
         stringArrayList = new ArrayList<>();
-        arrstrings=new ArrayList<>();
 
-        tvcomment2= (TextView) findViewById(R.id.typeComment2);
+        tvcomment2 = (TextView) findViewById(R.id.typeComment2);
 
         if (getIntent().getStringArrayListExtra("pathmultiple") != null) {
             ArrayList<String> arr = getIntent().getStringArrayListExtra("pathmultiple");
+            arrstrings = new String[arr.size()];
             for (String u : arr) {
                 Log.d(TAG, "string arr " + u);
                 ShowPhotoModel sm = new ShowPhotoModel(u);
@@ -122,23 +122,28 @@ public class ShowPhotoActivity extends Activity {
                 public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                     super.onScrollStateChanged(recyclerView, newState);
                     int currentFirstVisible = lm.findFirstVisibleItemPosition();
+                    Log.d(TAG, currentFirstVisible + " on scroll state changed" + newState);
+                    if (!tvcomment2.getText().toString().matches(""))
+                        arrstrings[currentFirstVisible] = tvcomment2.getText().toString();
 
-                    Log.d(TAG, currentFirstVisible+" on scroll state changed"+newState);
+                    Log.d(TAG, "arrstring "+arrstrings[currentFirstVisible]);
+
+                    if (arrstrings[currentFirstVisible] != null)
+                        tvcomment2.setText(arrstrings[currentFirstVisible]);
+                    else
+                        tvcomment2.setText("");
                 }
 
                 @Override
                 public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
-                    int currentFirstVisible = lm.findFirstVisibleItemPosition();
-                    Log.d(TAG, "current visible item = "+currentFirstVisible);
-                    if(!tvcomment2.getText().toString().matches(""))
-                        arrstrings.set(currentFirstVisible,tvcomment2.getText().toString());
+//                    int currentFirstVisible = lm.findFirstVisibleItemPosition();
+//                    Log.d(TAG, "current visible item = "+currentFirstVisible);
                 }
             });
             mAdapter = new ShowPhotoAdapter(stringArrayList, ShowPhotoActivity.this);
             recyclerv.setAdapter(mAdapter);
             mAdapter.notifyDataSetChanged();
-
 
         }
     }
@@ -150,12 +155,12 @@ public class ShowPhotoActivity extends Activity {
             commentString = typecomment.getText().toString();
 
         if (getIntent().getStringArrayListExtra("pathmultiple") != null) {
-
-            Log.d(TAG, "string arr list"+stringArrayList.size());
-            for(String s : arrstrings)
-                Log.d(TAG, s+" vals "+ arrstrings.indexOf(s));
-
-        } else if (getIntent().getStringExtra("path")!=null) {
+            Log.d(TAG, "string arr list" + stringArrayList.size());
+            for (int i = 0 ;i<stringArrayList.size();i++) {
+                     Log.d(TAG,stringArrayList.get(i)+ " vals " + arrstrings[i]);
+                    uploadFile(arrstrings[i],stringArrayList.get(i).getPath(), "photo");
+            }
+        } else if (getIntent().getStringExtra("path") != null) {
             Log.d(TAG, "get path imagecomment1 " + imagePath);
 
             uploadFile(commentString, imagePath, "photo");
@@ -226,11 +231,14 @@ public class ShowPhotoActivity extends Activity {
     }
 
     public void onBack(View view) {
-        Intent intent = new Intent(this, CamActivity.class);
-        intent.putExtra("username", sender);
-        intent.putExtra("otheruserkey", otheruserkey);
-        intent.putExtra("mykey", mykey);
-        startActivity(intent);
+        if (getIntent().getStringExtra("path") != null) {
+            Intent intent = new Intent(this, CamActivity.class);
+            intent.putExtra("username", sender);
+            intent.putExtra("otheruserkey", otheruserkey);
+            intent.putExtra("mykey", mykey);
+            startActivity(intent);
+        }
+
         finish();
     }
 

@@ -145,7 +145,7 @@ public class UploadFileService extends Service {
                                         cmn.setMsglocalurl("");
                                         Log.d(TAG, downloadUrl + "file weburl, file local url set to nil to send to receiver" + cmr.getMsglocalurl());
                                         MyXMPP2.getInstance(act, getString(R.string.server), mykey).sendMessage(cmn);
-                                        Toast.makeText(getApplicationContext(), "File Uploaded , msg sent", Toast.LENGTH_LONG).show();
+//                                        Toast.makeText(getApplicationContext(), "File Uploaded , msg sent", Toast.LENGTH_LONG).show();
                                     }
                                 })
                                 .addOnFailureListener(new OnFailureListener() {

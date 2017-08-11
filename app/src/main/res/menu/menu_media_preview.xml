@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menupreviewallmedia"
+        android:title="All Media"/>
+
+    <item
+        android:id="@+id/menupreviewshare"
+        android:title="Share"/>
+
+    <item
+        android:id="@+id/menupreviewsetmyprofilephoto"
+        android:title="Set as my profile photo"/>
+
+    <item
+        android:id="@+id/menupreviewsetgroupicon"
+        android:title="Set as group icon"/>
+
+    <item
+        android:id="@+id/menupreviewsewallapaper"
+        android:title="Use as wallpaper"/>
+
+    <item
+        android:id="@+id/menupreviewviewingallery"
+        android:title="View in Gallery"/>
+
+    <item
+        android:id="@+id/menupreviewrotateleft"
+        android:title="Roatate Left"/>
+
+    <item
+        android:id="@+id/menupreviewrotateright"
+        android:title="Rotate Right"/>
+
+    <item
+        android:id="@+id/menupreviewdelete"
+        android:title="Delete"/>
+
+</menu>

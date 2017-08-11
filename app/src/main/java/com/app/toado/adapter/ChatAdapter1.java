@@ -102,16 +102,18 @@ public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder
     public void onBindViewHolder(final ChatAdapter1.MyViewHolder holder, int position) {
         final ChatMessageRealm comment = mList.get(position);
 
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        Log.d(TAG, "chatadapter " + comment.getMsgstring());
 
-        if (comment.getMsgstring().matches("")) {
-            holder.msglay.setVisibility(View.GONE);
-            holder.timestampnotext.setVisibility(View.VISIBLE);
-            holder.timestampnotext.setText(comment.getSendertime());
-        } else {
+        if (comment.getMsgstring() != null) {
             holder.msglay.setVisibility(View.VISIBLE);
             holder.timestampnotext.setVisibility(View.GONE);
             holder.sender_Timestamp.setText(comment.getSendertime());
+
+        } else {
+            holder.msglay.setVisibility(View.GONE);
+            holder.timestampnotext.setVisibility(View.VISIBLE);
+            holder.timestampnotext.setText(comment.getSendertime());
+
         }
 
         holder.progressbar.setVisibility(View.GONE);
@@ -206,26 +208,28 @@ public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder
             public void onClick(View v) {
                 Log.d(TAG, holder.getAdapterPosition() + " down clicked for" + comment.getMsgid() + comment.getMsglocalurl() + comment.getMsgweburl());
                 FirebaseStorage storage = FirebaseStorage.getInstance();
-                final StorageReference httpsReference = storage.getReferenceFromUrl(comment.getMsgweburl());
-                httpsReference.getMetadata().addOnSuccessListener(new OnSuccessListener<StorageMetadata>() {
-                    @Override
-                    public void onSuccess(StorageMetadata storageMetadata) {
-                        Log.d(TAG, "Storage meta data" + storageMetadata.getContentType() + " " + storageMetadata.getName());
-                        String mdata = storageMetadata.getContentType();
-                        String filetype = "incoming" + File.separator + comment.getMsgtype();
-                        String filextension = mdata.substring(mdata.indexOf("/") + 1, mdata.length());
-                        String filename = comment.getSenderdate() + " " + comment.getSendertime() + "." + filextension;
-                        File file = OpenFile.createFile(context, filename, filetype);
-                        Log.d(TAG, file.getAbsolutePath() + "Storage meta data" + filetype + " " + filename);
-                        ulservice.downloadFile(session.getUserKey(), otheruserkey, comment, httpsReference, file, context);
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception exception) {
-                        // Uh-oh, an error occurred!
-                        exception.printStackTrace();
-                    }
-                });
+                if (comment.getMsgweburl() != null) {
+                    final StorageReference httpsReference = storage.getReferenceFromUrl(comment.getMsgweburl());
+                    httpsReference.getMetadata().addOnSuccessListener(new OnSuccessListener<StorageMetadata>() {
+                        @Override
+                        public void onSuccess(StorageMetadata storageMetadata) {
+                            Log.d(TAG, "Storage meta data" + storageMetadata.getContentType() + " " + storageMetadata.getName());
+                            String mdata = storageMetadata.getContentType();
+                            String filetype = "incoming" + File.separator + comment.getMsgtype();
+                            String filextension = mdata.substring(mdata.indexOf("/") + 1, mdata.length());
+                            String filename = comment.getSenderdate() + " " + comment.getSendertime() + "." + filextension;
+                            File file = OpenFile.createFile(context, filename, filetype);
+                            Log.d(TAG, file.getAbsolutePath() + "Storage meta data" + filetype + " " + filename);
+                            ulservice.downloadFile(session.getUserKey(), otheruserkey, comment, httpsReference, file, context);
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(Exception exception) {
+                            // Uh-oh, an error occurred!
+                            exception.printStackTrace();
+                        }
+                    });
+                }
             }
         });
 
@@ -248,19 +252,26 @@ public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder
                     Log.d(TAG, file.getAbsolutePath() + "mime " + type + " ext " + ext + "uri file " + FileProvider.getUriForFile(context,
                             BuildConfig.APPLICATION_ID + ".provider",
                             file).toString());
-//                    Uri ur = UriHelper.getNougatUri(file);
-//                    Log.d(TAG, "uri2 " + ur);
-//                    intent.setDataAndType(FileProvider.getUriForFile(context,
-//                            BuildConfig.APPLICATION_ID + ".provider",
-//                            file), type);
-                    try {
-                        Method m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
-                        m.invoke(null);
-                        intent.setDataAndType(Uri.fromFile(file), type);
+
+
+                    if(type.contains("image")){
+
+                        Log.d(TAG, "contains image mime " );
+                        intent.setDataAndType(FileProvider.getUriForFile(context,
+                                BuildConfig.APPLICATION_ID + ".provider",
+                                file), type);
                         context.startActivity(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+
                     }
+
+//                    try {
+//                        Method m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
+//                        m.invoke(null);
+//                        intent.setDataAndType(Uri.fromFile(file), type);
+//                        context.startActivity(intent);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
                 }
             }
         });
