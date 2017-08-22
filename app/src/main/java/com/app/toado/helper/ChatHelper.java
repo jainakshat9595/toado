@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.app.toado.R;
 import com.app.toado.activity.chat.ChatActivity;
+import com.app.toado.model.ChatMessage;
 import com.app.toado.model.User;
 import com.app.toado.model.realm.ActiveChatsRealm;
 import com.app.toado.model.realm.ChatMessageRealm;
@@ -22,7 +23,10 @@ import org.jivesoftware.smack.packet.Message;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 import io.realm.Realm;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
 import static com.app.toado.helper.ToadoConfig.DBREF_USER_PROFILES;
@@ -53,14 +57,14 @@ public class ChatHelper {
     }
 
 
-    public static Message getMessageBody(ChatMessageRealm chatMessage, String mykey, Context context) {
+    public static Message getMessageBody(ChatMessageRealm chatMessage, String mykey, Activity context) {
         final Message message = new Message();
         Gson gson = new Gson();
         String jsonString = gson.toJson(chatMessage);
         String msgbody;
         try {
             JSONObject request = new JSONObject(jsonString);
-            Log.d(TAG, chatMessage.getMsgid() + "json string sendMessage ChatHelper" + request.toString());
+            Log.d(TAG, chatMessage.getMsgid() + "   json string sendMessage ChatHelper    " + request.toString());
             msgbody = request.toString();
             message.setBody(msgbody);
             message.setType(Message.Type.normal);
@@ -93,7 +97,9 @@ public class ChatHelper {
 //        });
 //    }
 
-    public static void addChatMsgRealm(final Message message, final String mykey, final Context context) {
+    public static void addChatMsgRealm(final Message message, final String mykey, final Activity context) {
+        Log.d(TAG, message.getStanzaId() + "message body chathlerpr " + message.getBody());
+
         final Realm re = Realm.getDefaultInstance();
         re.executeTransactionAsync(new Realm.Transaction() {
             @Override
@@ -103,19 +109,24 @@ public class ChatHelper {
                     String js = HtmlManipulator.replaceHtmlEntities(message.getBody());
                     System.out.println("message body replace html entities" + js);
                     Gson gson = new Gson();
-                    ChatMessageRealm gsonchat = gson.fromJson(js, ChatMessageRealm.class);
+                    ChatMessageRealm gsonchat = null;
+                    try {
+                        gsonchat = gson.fromJson(js, ChatMessageRealm.class);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     String othr = "";
                     if (!mykey.matches(gsonchat.getSenderjid())) {
                         Log.d(TAG, mykey + "  " + gsonchat.getOtherjid() + " gson chat chatherlper1 " + gsonchat.getSenderjid());
                         chat.setChatref(mykey + gsonchat.getSenderjid());
-                        othr = gsonchat.getSenderjid ();
+                        othr = gsonchat.getSenderjid();
                     } else {
                         Log.d(TAG, mykey + "  " + gsonchat.getOtherjid() + " gson chat chatherlper2 " + gsonchat.getSenderjid());
                         chat.setChatref(mykey + gsonchat.getOtherjid());
                         othr = gsonchat.getOtherjid();
                     }
 
-                    Log.d(TAG, mykey + "othr chathelper " + othr);
+                    Log.d(TAG, gsonchat.getMsgtype() + "othr chathelper " + gsonchat.getMsgstring());
 
                     if (!gsonchat.getMsgtype().matches("status")) {
                         if (gsonchat.getMsgstring() != null)
@@ -148,16 +159,24 @@ public class ChatHelper {
         }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
-                System.out.println("new message stored realm success chathelper");
-                context.sendBroadcast(new Intent().putExtra("reloadchat", "yes").setAction("reloadchataction"));
+                System.out.println(message.getBody().contains("\"msgstatus\":\"3\"") + "new message stored realm success chathelper" + message.getStanzaId() + " " + message.getBody());
+                if (message.getBody().contains("\"msgstatus\":\"3\""))
+                    addMessageRead(context, message.getStanzaId());
+                else
+                    context.sendBroadcast(new Intent().putExtra("reloadchat", "yes").setAction("reloadchataction"));
+
                 re.close();
             }
         }, new Realm.Transaction.OnError() {
             @Override
             public void onError(Throwable error) {
                 // Transaction failed and was automatically canceled.
+                System.out.println(message.getBody().contains("\"msgstatus\":\"3\"") + "  new message stored realm failed chathelper    " + message.getStanzaId() + " " + message.getBody());
+
+                if (message.getBody().contains("\"msgstatus\":\"3\""))
+                    addMessageRead(context, message.getStanzaId());
+
                 error.printStackTrace();
-                System.out.println("new message stored realm failed chathelper");
                 re.close();
             }
         });
@@ -196,8 +215,29 @@ public class ChatHelper {
         });
     }
 
+    public static void addMessageRead(final Context contx, final String msgid) {
+        try {
+            final Realm re = Realm.getDefaultInstance();
+            final RealmResults<ChatMessageRealm> result2 = re.where(ChatMessageRealm.class).equalTo("msgid", msgid).findAll();
+            Log.d(TAG, result2.get(0).getMsgstatus() + "sending broadcast for msg read " + result2.get(0).getMsgstring());
+
+            if (!result2.get(0).getMsgstatus().matches("3")) {
+                re.beginTransaction();
+                ChatMessageRealm cm = new ChatMessageRealm(result2.get(0).getChatref(), result2.get(0).getOtherjid(), result2.get(0).getMsgstring(), result2.get(0).getSenderjid(), result2.get(0).getSendertime(), result2.get(0).getSenderdate(), result2.get(0).getMsgtype(), result2.get(0).getMsgid(), "3", result2.get(0).getMsgweburl(), result2.get(0).getMsglocalurl(), result2.get(0).getMediathumbnail());
+                re.insertOrUpdate(cm);
+                re.commitTransaction();
+            }
+            re.close();
+            contx.sendBroadcast(new Intent().putExtra("readstatus", msgid).setAction("reloadchataction"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void checkActiveChats(final String mykey, final String otheruserkey, final String msgid) {
-        Log.d(TAG, mykey + otheruserkey + " check activechats shows size1  ");
+        Log.d(TAG, mykey + otheruserkey + " check activechats shows size1 ");
+
         if ((mykey + otheruserkey).matches(mykey + mykey))
             return;
 
@@ -253,8 +293,33 @@ public class ChatHelper {
 
             }
         });
-
-
     }
 
+    public static void deleteItems(ChatMessageRealm cm) {
+        Realm realm = Realm.getDefaultInstance();
+
+            final RealmResults<ChatMessageRealm> results = realm.where(ChatMessageRealm.class).equalTo("msgid", cm.getMsgid()).findAll();
+
+            // All changes to data must happen in a transaction
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    results.deleteAllFromRealm();
+                }
+            });
+
+        realm.close();
+    }
+
+    public static void starMessage(final ChatMessageRealm cm){
+        Realm realm = Realm.getDefaultInstance();
+        // All changes to data must happen in a transaction
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.copyToRealmOrUpdate(cm);
+            }
+        });
+        realm.close();
+    }
 }

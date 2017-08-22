@@ -2,26 +2,31 @@ package com.app.toado.adapter;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.StrictMode;
+import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.content.FileProvider;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.app.toado.BuildConfig;
 import com.app.toado.R;
+import com.app.toado.activity.chat.MediaPreviewActivity;
+import com.app.toado.activity.chat.ForwardChatActivity;
+import com.app.toado.helper.ChatHelper;
 import com.app.toado.helper.OpenFile;
-import com.app.toado.helper.UriHelper;
+import com.app.toado.model.ChatMessageForward;
 import com.app.toado.model.realm.ChatMessageRealm;
 import com.app.toado.services.UploadFileService;
 import com.app.toado.settings.UserSession;
@@ -33,12 +38,14 @@ import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
 
+import ca.barrenechea.widget.recyclerview.decoration.StickyHeaderAdapter;
+import io.realm.Realm;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
-import static android.R.attr.path;
 import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
 import static com.app.toado.services.UploadFileService.MEDIA_DOWNLOAD_FAILED;
 import static com.app.toado.services.UploadFileService.MEDIA_DOWNLOAD_PROGRESS;
@@ -48,7 +55,7 @@ import static com.app.toado.services.UploadFileService.MEDIA_PROGRESSING;
 import static com.app.toado.services.UploadFileService.MEDIA_STARTING;
 import static com.app.toado.services.UploadFileService.MEDIA_SUCCESS;
 
-public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder> {
+public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder> implements StickyHeaderAdapter<ChatHeaderViewHolder> {
     ArrayList<ChatMessageRealm> mList = new ArrayList<>();
     private Activity context;
     private UserSession session;
@@ -57,14 +64,21 @@ public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder
     String TAG = "ChatAdapter1";
     UploadFileService ulservice;
     String otheruserkey;
+    String otherusername;
     String todaytimestamp;
+    private boolean multiSelect = false;
+    private ArrayList<ChatMessageRealm> selectedItems = new ArrayList<>();
+    private ArrayList<MyViewHolder> selectedHolders = new ArrayList<>();
+    String stringcopy = "";
+    ActionMode mMode;
 
-    public ChatAdapter1(ArrayList<ChatMessageRealm> list, Activity context, String otheruserkey, String todaytimestamp) {
+    public ChatAdapter1(ArrayList<ChatMessageRealm> list, Activity context, String otheruserkey, String todaytimestamp, String otherusername) {
         this.mList = list;
         this.context = context;
         session = new UserSession(context);
         this.otheruserkey = otheruserkey;
         this.todaytimestamp = todaytimestamp;
+        this.otherusername = otherusername;
     }
 
     @Override
@@ -99,29 +113,93 @@ public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder
     }
 
     @Override
-    public void onBindViewHolder(final ChatAdapter1.MyViewHolder holder, int position) {
+    public void onBindViewHolder(final ChatAdapter1.MyViewHolder holder, final int position) {
         final ChatMessageRealm comment = mList.get(position);
 
         Log.d(TAG, "chatadapter " + comment.getMsgstring());
 
         if (comment.getMsgstring() != null) {
-            holder.msglay.setVisibility(View.VISIBLE);
-            holder.timestampnotext.setVisibility(View.GONE);
-            holder.sender_Timestamp.setText(comment.getSendertime());
-
-        } else {
-            holder.msglay.setVisibility(View.GONE);
-            holder.timestampnotext.setVisibility(View.VISIBLE);
-            holder.timestampnotext.setText(comment.getSendertime());
-
+            if (!comment.getMsgstring().matches("")) {
+                holder.layonimage.setVisibility(View.GONE);
+                holder.msglay.setVisibility(View.VISIBLE);
+                holder.sender_Timestamp.setText(comment.getSendertime());
+                if (comment.getStar() != null && comment.getStar())
+                    holder.iconstar1.setVisibility(View.VISIBLE);
+                else
+                    holder.iconstar1.setVisibility(View.GONE);
+            } else {
+                holder.layonimage.setVisibility(View.VISIBLE);
+                holder.msglay.setVisibility(View.GONE);
+                holder.timestampnotext.setText(comment.getSendertime());
+                if (comment.getStar() != null && comment.getStar())
+                    holder.iconstar2.setVisibility(View.VISIBLE);
+                else
+                    holder.iconstar2.setVisibility(View.GONE);
+            }
         }
+
+        // LONG PRESS VIEW HOLDER SETUP
+
+        holder.msgbackground.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (!multiSelect) {
+                    ((AppCompatActivity) v.getContext()).startSupportActionMode(actionModeCallbacks);
+                    selectItem(holder, comment);
+                }
+                return true;
+            }
+        });
+
+        holder.imgchat.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                ((AppCompatActivity) v.getContext()).startSupportActionMode(actionModeCallbacks);
+                selectItem(holder, comment);
+                return true;
+            }
+        });
+
+
+        holder.msgbackground.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectItem(holder, comment);
+            }
+        });
 
         holder.progressbar.setVisibility(View.GONE);
         holder.progressbar.setIndeterminate(true);
+        setStatus(mList.get(position).getMsgstatus(), holder);
+
+//        RelativeLayout.LayoutParams msgLayoutParams = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//        if (holder.getItemViewType() == SENDER) {
+//             setStatus(mList.get(position).getMsgstatus(), holder);
+//            msgLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+//            msgLayoutParams.setMargins(100, 0, 0, 0);
+//            holder.msglay.setLayoutParams(msgLayoutParams);
+//        } else {
+//             msgLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+//            msgLayoutParams.setMargins(0, 0, 100, 0);
+//            holder.msglay.setLayoutParams(msgLayoutParams);
+//        }
+
         switch (comment.getMsgtype()) {
             case "text":
                 String decryptedmsg = comment.getMsgstring();
                 holder.commentString.setText(decryptedmsg);
+                holder.imgchatrel.setVisibility(View.GONE);
+                holder.commentString.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        int lineCount = holder.commentString.getLineCount();
+                        Log.d(TAG, holder.msglay.getOrientation() + " comment strings number of lines " + lineCount);
+                        if (lineCount > 1) {
+                            holder.msglay.setOrientation(LinearLayout.VERTICAL);
+                        } else
+                            holder.msglay.setOrientation(LinearLayout.HORIZONTAL);
+                    }
+                });
                 break;
             case "photo":
                 holder.imgchatrel.setVisibility(View.VISIBLE);
@@ -225,7 +303,6 @@ public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(Exception exception) {
-                            // Uh-oh, an error occurred!
                             exception.printStackTrace();
                         }
                     });
@@ -236,75 +313,150 @@ public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder
         holder.imgchat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String path = mList.get(holder.getAdapterPosition()).getMsglocalurl();
-                if (path == null || path.matches("")) {
-                    Toast.makeText(context, "Please download media first.", Toast.LENGTH_SHORT).show();
+                if (multiSelect) {
+                    selectItem(holder, comment);
                 } else {
-                    Intent intent = new Intent();
-                    intent.setAction(android.content.Intent.ACTION_VIEW);
-                    intent.setFlags(FLAG_GRANT_READ_URI_PERMISSION);
+                    String path = mList.get(holder.getAdapterPosition()).getMsglocalurl();
+                    Log.d(TAG, "path imagchat holder" + path);
 
-                    File file = new File(path);
+                    if (path == null || path.matches("")) {
+                        holder.btndown.performClick();
+                    } else {
+                        Intent intent = new Intent();
+                        intent.setAction(android.content.Intent.ACTION_VIEW);
+                        intent.setFlags(FLAG_GRANT_READ_URI_PERMISSION);
 
-                    MimeTypeMap mime = MimeTypeMap.getSingleton();
-                    String ext = file.getName().substring(file.getName().indexOf(".") + 1);
-                    String type = mime.getMimeTypeFromExtension(ext);
-                    Log.d(TAG, file.getAbsolutePath() + "mime " + type + " ext " + ext + "uri file " + FileProvider.getUriForFile(context,
-                            BuildConfig.APPLICATION_ID + ".provider",
-                            file).toString());
+                        File file = new File(path);
 
-
-                    if(type.contains("image")){
-
-                        Log.d(TAG, "contains image mime " );
-                        intent.setDataAndType(FileProvider.getUriForFile(context,
+                        String ext = OpenFile.getFileExtension(file);
+                        String type = OpenFile.getFileMimeType(ext);
+                        Log.d(TAG, file.getAbsolutePath() + "mime " + type + " ext " + ext + "uri file " + FileProvider.getUriForFile(context,
                                 BuildConfig.APPLICATION_ID + ".provider",
-                                file), type);
-                        context.startActivity(intent);
+                                file).toString());
+
+                        Intent in = new Intent(context, MediaPreviewActivity.class);
+                        if (getItemViewType(position) == SENDER)
+                            in.putExtra("sender", "You");
+                        else
+                            in.putExtra("sender", otherusername);
+
+                        in.putExtra("timestamp", mList.get(position).getSenderdate() + ", " + mList.get(position).getSendertime());
+                        in.putExtra("caption", mList.get(position).getMsgstring());
+                        in.putExtra("imagepath", mList.get(position).getMsglocalurl());
+                        in.putExtra("mediatype", type);
+                        context.startActivity(in);
 
                     }
-
-//                    try {
-//                        Method m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
-//                        m.invoke(null);
-//                        intent.setDataAndType(Uri.fromFile(file), type);
-//                        context.startActivity(intent);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
                 }
             }
         });
     }
 
+    private void setStatus(String msgstatus, MyViewHolder holder) {
+        switch (msgstatus) {
+            case "0":
+                holder.imgstatus.setImageDrawable(context.getDrawable(R.mipmap.ic_pending));
+                holder.imgstatus2.setImageDrawable(context.getDrawable(R.mipmap.ic_pending));
+                break;
+            case "1":
+                holder.imgstatus.setImageDrawable(context.getDrawable(R.mipmap.ic_sent));
+                holder.imgstatus2.setImageDrawable(context.getDrawable(R.mipmap.ic_sent));
+                break;
+            case "2":
+                holder.imgstatus.setImageDrawable(context.getDrawable(R.mipmap.ic_delivered));
+                holder.imgstatus2.setImageDrawable(context.getDrawable(R.mipmap.ic_delivered));
+                break;
+            case "3":
+                holder.imgstatus.setImageDrawable(context.getDrawable(R.mipmap.ic_read));
+                holder.imgstatus2.setImageDrawable(context.getDrawable(R.mipmap.ic_read));
+                break;
+        }
+    }
+
+    @Override
+    public long getHeaderId(int position) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(Long.parseLong(mList.get(position).getMsgid()));
+        return Long.parseLong(calendar.get(Calendar.YEAR) + "" + calendar.get(Calendar.MONTH) + "" + calendar.get(Calendar.DAY_OF_MONTH));
+    }
+
+    @Override
+    public ChatHeaderViewHolder onCreateHeaderViewHolder(ViewGroup parent) {
+        return new ChatHeaderViewHolder(LayoutInflater.from(context).inflate(R.layout.view_holder_post_header, parent, false));
+    }
+
+    @Override
+    public void onBindHeaderViewHolder(ChatHeaderViewHolder viewholder, int position) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(Long.parseLong(mList.get(position).getMsgid()));
+        viewholder.mPostDate.setText(
+                String.format("%s %s, %s",
+                        calendar.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.getDefault()),
+                        calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.YEAR)
+                )
+        );
+    }
+
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView sender_Timestamp, commentString, timestampnotext;
+        public TextView sender_Timestamp, commentString, timestampnotext, viewselected;
         public ImageView imgchat;
         public ImageView btndown;
+        public ImageView imgstatus;
+        public ImageView imgstatus2;
+        public ImageView iconstar1;
+        public ImageView iconstar2;
         public ProgressBar progressbar;
         public CoordinatorLayout imgchatrel;
         public LinearLayout msglay;
+        public RelativeLayout msgbackground;
+        public LinearLayout layonimage;
 
         public MyViewHolder(View itemView) {
             super(itemView);
             sender_Timestamp = (TextView) itemView.findViewById(R.id.meSender_TimeStamp);
             timestampnotext = (TextView) itemView.findViewById(R.id.timestampnotext);
             commentString = (TextView) itemView.findViewById(R.id.commentString);
-//            progress = (TextView) itemView.findViewById(R.id.mediaprogress);
+            viewselected = (TextView) itemView.findViewById(R.id.viewselected);
             imgchat = (ImageView) itemView.findViewById(R.id.imgchat);
+            iconstar1 = (ImageView) itemView.findViewById(R.id.iconstar);
+            iconstar2 = (ImageView) itemView.findViewById(R.id.iconstar2);
+            imgchat = (ImageView) itemView.findViewById(R.id.imgchat);
+            imgstatus = (ImageView) itemView.findViewById(R.id.status);
+            imgstatus2 = (ImageView) itemView.findViewById(R.id.status2);
             btndown = (ImageView) itemView.findViewById(R.id.btndown);
             progressbar = (ProgressBar) itemView.findViewById(R.id.progressbar);
             imgchatrel = (CoordinatorLayout) itemView.findViewById(R.id.imgchatrel);
             msglay = (LinearLayout) itemView.findViewById(R.id.msglay);
+            msgbackground = (RelativeLayout) itemView.findViewById(R.id.msgbackground);
+            layonimage = (LinearLayout) itemView.findViewById(R.id.layonimage);
+
         }
     }
 
     public void setUploadProgress(MyViewHolder holder, String progress, String progresstext) {
         Log.d(TAG, progresstext + " upload check " + (holder.progressbar.getVisibility() == View.VISIBLE));
-//        holder.progress.setVisibility(View.VISIBLE);
         holder.progressbar.setVisibility(View.VISIBLE);
         holder.progressbar.setIndeterminate(true);
-//        holder.progress.setText("u/L status: " + progress);
+        ChatMessageRealm comment = mList.get(holder.getAdapterPosition());
+        if (comment.getMsgstring() != null) {
+            if (!comment.getMsgstring().matches("")) {
+                holder.layonimage.setVisibility(View.GONE);
+                holder.msglay.setVisibility(View.VISIBLE);
+                holder.sender_Timestamp.setText(comment.getSendertime());
+                if (comment.getStar() != null && comment.getStar())
+                    holder.iconstar1.setVisibility(View.VISIBLE);
+                else
+                    holder.iconstar1.setVisibility(View.GONE);
+            } else {
+                holder.layonimage.setVisibility(View.VISIBLE);
+                holder.msglay.setVisibility(View.GONE);
+                holder.timestampnotext.setText(comment.getSendertime());
+                if (comment.getStar() != null && comment.getStar())
+                    holder.iconstar2.setVisibility(View.VISIBLE);
+                else
+                    holder.iconstar2.setVisibility(View.GONE);
+            }
+        }
         if (progresstext.matches(MEDIA_STARTING) || progresstext.matches(MEDIA_PROGRESSING)) {
             holder.progressbar.setVisibility(View.VISIBLE);
         } else if (progresstext.matches(MEDIA_SUCCESS)) {
@@ -347,10 +499,151 @@ public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder
         }
     }
 
+    public void setDeliveryStatus(MyViewHolder holder, String status) {
+        Log.d(TAG, mList.get(holder.getAdapterPosition()).getMsgstatus() + " delivery status " + mList.get(holder.getAdapterPosition()).getMsgweburl());
+        setStatus(status, holder);
+    }
+
     public void setUploadServiceRef(UploadFileService ulservice) {
         Log.d(TAG, "setting upload file reference chatadapt");
         this.ulservice = ulservice;
     }
+
+    private ActionMode.Callback actionModeCallbacks = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            mode.getMenuInflater().inflate(R.menu.menu_actionmode, menu);
+            selectedItems = new ArrayList<>();
+            selectedHolders = new ArrayList<>();
+            multiSelect = true;
+            mMode = mode;
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+
+            doTask(item);
+            mode.finish();
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            multiSelect = false;
+            stringcopy = "";
+            removeHighlights();
+//            removeItems();
+            notifyDataSetChanged();
+        }
+    };
+
+    private void doTask(MenuItem item) {
+        switch (item.getTitle().toString().toLowerCase()) {
+            case "delete":
+                for (ChatMessageRealm cm : selectedItems) {
+                    Log.d(TAG, "mlist size" + mList.size());
+                    mList.remove(cm);
+                    ChatHelper.deleteItems(cm);
+                }
+                notifyDataSetChanged();
+                break;
+
+            case "copy":
+                Log.d(TAG, selectedItems.size() + " copy called");
+                for (ChatMessageRealm cm : selectedItems) {
+                    String msgtime = cm.getSenderdate().replace("-2017", "").replace("-", "/") + ", " + cm.getSendertime().replace(" ", "");
+                    stringcopy = stringcopy + "\n[" + msgtime + "] " + otherusername + ": " + cm.getMsgstring();
+                    Log.d(TAG, "string copy" + stringcopy);
+                }
+                Log.d(TAG, "string copyfinal" + stringcopy);
+
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) context.getSystemService(context.CLIPBOARD_SERVICE);
+                android.content.ClipData clip = android.content.ClipData.newPlainText("Copied Text", stringcopy);
+                clipboard.setPrimaryClip(clip);
+                break;
+
+            case "star":
+                for (ChatMessageRealm msg : selectedItems) {
+                    ChatMessageRealm starmsg = new ChatMessageRealm(msg.getChatref(), msg.getOtherjid(), msg.getMsgstring(), msg.getSenderjid(), msg.getSendertime(), msg.getSenderdate(), msg.getMsgtype(), msg.getMsgid(), msg.getMsgstatus(), msg.getMsgweburl(), msg.getMsglocalurl(), msg.getMediathumbnail(), true);
+                    ChatHelper.starMessage(starmsg);
+                }
+                for (MyViewHolder hold : selectedHolders) {
+                    if (hold.layonimage.getVisibility() == View.VISIBLE)
+                        hold.iconstar2.setVisibility(View.VISIBLE);
+                    else
+                        hold.iconstar1.setVisibility(View.VISIBLE);
+                }
+                break;
+            case "forward":
+                Intent in = new Intent(context, ForwardChatActivity.class);
+                Bundle forward = new Bundle();
+                ArrayList<ChatMessageForward> arrlist = new ArrayList<>();
+                for (ChatMessageRealm msg : selectedItems) {
+                    ChatMessageForward cmf = new ChatMessageForward(msg.getMsgstring(), msg.getMsgtype(), msg.getMsglocalurl(), msg.getMsgweburl(), msg.getMediathumbnail());
+                    arrlist.add(cmf);
+                }
+                forward.putSerializable("arrmsgids", arrlist);
+                in.putExtras(forward);
+                context.startActivity(in);
+                break;
+        }
+    }
+
+    void selectItem(ChatAdapter1.MyViewHolder holder, ChatMessageRealm item) {
+        if (multiSelect) {
+            if (selectedItems.contains(item)) {
+                holder.viewselected.setVisibility(View.GONE);
+                selectedItems.remove(item);
+                removeItem(holder);
+            } else {
+                selectedItems.add(item);
+                selectedHolders.add(holder);
+                int hei = holder.msgbackground.getHeight();
+                Log.d(TAG, "height selected item " + hei);
+                holder.viewselected.setVisibility(View.VISIBLE);
+                holder.viewselected.getLayoutParams().height = hei;
+                holder.viewselected.requestLayout();
+            }
+        }
+
+        if (selectedHolders.size() == 0 && mMode != null) {
+            mMode.finish();
+        }
+
+        if (selectedItems.size() == 0 && mMode != null)
+            mMode.finish();
+
+        for (ChatMessageRealm cmr : selectedItems)
+            Log.d(TAG, selectedItems.size() + "selected items" + cmr.getMsgstring() + " " + multiSelect);
+
+    }
+
+    public void removeItem(MyViewHolder holder) {
+        holder.viewselected.setVisibility(View.GONE);
+        selectedHolders.remove(holder);
+    }
+
+    public void removeItems() {
+        if (mMode != null)
+            mMode.finish();
+    }
+
+    private void removeSelectedItems(ChatMessageRealm chatMessageRealm) {
+        selectedItems.remove(chatMessageRealm);
+    }
+
+    private void removeHighlights() {
+        for (MyViewHolder hold : selectedHolders)
+            hold.viewselected.setVisibility(View.GONE);
+    }
+
+    public boolean isActionEnabled() {
+        return multiSelect;
+    }
 }
-
-

@@ -26,4 +26,6 @@
     <color name="white">#ffffff</color>
     <color name="light_green">#228B22</color>
 
+    <color name="stickyheaderback">#D4EAF4</color>
+    <color name="actionbarchatact">#075E54</color>
 </resources>

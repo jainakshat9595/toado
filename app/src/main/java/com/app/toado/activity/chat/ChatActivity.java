@@ -12,6 +12,7 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
@@ -48,7 +49,7 @@ import com.app.toado.services.UploadFileService;
 import com.bumptech.glide.Glide;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
-import com.nbsp.materialfilepicker.ui.FilePickerActivity;
+import com.necistudio.libarary.FilePickerActivity;
 import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
@@ -62,6 +63,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import ca.barrenechea.widget.recyclerview.decoration.StickyHeaderDecoration;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
@@ -77,11 +79,10 @@ import static com.app.toado.services.UploadFileService.MEDIA_SUCCESS;
 
 public class ChatActivity extends ToadoBaseActivity {
     private EditText typeComment;
-    private ImageButton attachment, takephoto;
+    private ImageButton attachment, takephoto, imgdocs1, imgdocs2;
     FloatingActionButton sendButton;
     Intent intent;
     private RecyclerView recyclerView;
-    DatabaseReference dbChat;
     private String otheruserkey;
     LinearLayoutManager linearLayoutManager;
     private MarshmallowPermissions marshmallowPermissions;
@@ -108,7 +109,7 @@ public class ChatActivity extends ToadoBaseActivity {
     Boolean chatexists;
     private String otherusername;
     private String profpic;
-    private MyXMPP2 myxinstance;
+    private MyXMPP2 myxinstance = null;
     String imageEncoded;
     List<String> imagesEncodedList;
     ArrayList<String> multipleImagesPathList;
@@ -121,8 +122,10 @@ public class ChatActivity extends ToadoBaseActivity {
     RelativeLayout chatlay;
     Boolean bolkeypad = false;
     private ImageButton takephoto2;
-    int in;
-
+    Runnable runn;
+    Handler han;
+    StickyHeaderDecoration stickydecor;
+    String[] mimetypes = {"application/pdf","application/docx","application/xlsx","application/pptx","application/pptx","application/txt"};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,7 +133,7 @@ public class ChatActivity extends ToadoBaseActivity {
         session = new UserSession(this);
         mykey = session.getUserKey();
 
-//        connection = MyXMPP2.getInstance(this,).getConn();
+//      connection = MyXMPP2.getInstance(this,).getConn();
 
         mRealm = Realm.getDefaultInstance();
         checkChatRef(otheruserkey);
@@ -172,10 +175,22 @@ public class ChatActivity extends ToadoBaseActivity {
         takephoto2 = (ImageButton) findViewById(R.id.takephoto2);
         galleryattach = (ImageButton) findViewById(R.id.galleryattach);
         galleryattach2 = (ImageButton) findViewById(R.id.galleryattach2);
+        imgdocs1 = (ImageButton) findViewById(R.id.buttondocs);
+        imgdocs2 = (ImageButton) findViewById(R.id.buttondocs2);
 
-//        imgdocattach = (ImageButton) findViewById(R.id.docattach);
-//        videoattach = (ImageButton) findViewById(R.id.videoattach);
-//        locattach = (ImageButton) findViewById(R.id.locationattach);
+        imgdocs1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickDocs();
+            }
+        });
+
+        imgdocs2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickDocs();
+            }
+        });
 
         takephoto.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -195,7 +210,7 @@ public class ChatActivity extends ToadoBaseActivity {
             public void onClick(View v) {
                 Log.d(TAG, "Multiple images called " + MULTIPLE_IMAGE_SELECT);
                 Intent intent = new Intent();
-                intent.setType("video/*, images/*");
+                intent.setType("image/* video/*");
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(Intent.createChooser(intent, "Select Images"), MULTIPLE_IMAGE_SELECT);
@@ -218,11 +233,12 @@ public class ChatActivity extends ToadoBaseActivity {
             }
         });
 
-        myxinstance = MyXMPP2.getInstance(ChatActivity.this, getString(R.string.server), mykey);
-        mAdapter = new ChatAdapter1(chatList, this, otheruserkey, GetTimeStamp.timeStampDate());
+        mAdapter = new ChatAdapter1(chatList, this, otheruserkey, GetTimeStamp.timeStampDate(), otherusername);
         recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
+        stickydecor = new StickyHeaderDecoration(mAdapter);
+        recyclerView.addItemDecoration(stickydecor);
         recyclerView.setAdapter(mAdapter);
 
         chatlay.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -233,22 +249,15 @@ public class ChatActivity extends ToadoBaseActivity {
                 chatlay.getWindowVisibleDisplayFrame(r);
                 int screenHeight = chatlay.getRootView().getHeight();
 
-                // r.bottom is the position above soft keypad or device button.
-                // if keypad is shown, the r.bottom is smaller than that before.
                 int keypadHeight = screenHeight - r.bottom;
 
-                Log.d(TAG, "keypadHeight = " + keypadHeight);
-
                 if (keypadHeight > screenHeight * 0.15) {
-                    Log.d(TAG, "keyboard is opened");
                     bolkeypad = true;
                 } else {
-                    Log.d(TAG, "keyboard is closed");
                     bolkeypad = false;
                 }
             }
         });
-
 
         multipleImagesPathList = new ArrayList<>();
 
@@ -264,8 +273,9 @@ public class ChatActivity extends ToadoBaseActivity {
                 if (cm != null)
                     myxinstance.sendMessage(cm);
 
-                loadData();
+                loadData(true);
                 typeComment.setText("");
+
             }
         });
 
@@ -320,33 +330,51 @@ public class ChatActivity extends ToadoBaseActivity {
             }
         });
 */
+    }
 
-/*
-        imgdocattach.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (marshmallowPermissions.checkPermissionForReadStorage()) {
-                    Intent intent = new Intent(ChatActivity.this, FilePickerActivity.class);
-                    intent.putExtra(FilePickerActivity.ARG_CLOSEABLE, true);
-                    startActivityForResult(intent, PICK_DOCS);
-                } else {
-                    marshmallowPermissions.requestPermissionForReadExternalStorage();
-                }
+    private void pickDocs() {
 
-                layoutToAdd.setVisibility(View.GONE);
-                clicked = false;
+        if (marshmallowPermissions.checkPermissionForReadStorage()) {
+            Intent intent = new Intent(getApplicationContext(),FilePickerActivity.class);
+            startActivityForResult(intent, PICK_DOCS);
+            try {
+
+            } catch (android.content.ActivityNotFoundException ex) {
+                // Potentially direct the user to the Market with a Dialog
 
             }
-        });
-*/
+        } else {
+            marshmallowPermissions.requestPermissionForReadExternalStorage();
+        }
+        layoutToAdd.setVisibility(View.GONE);
+        clicked = false;
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         mykey = session.getUserKey();
+        han = new Handler();
+        if (myxinstance == null)
+            myxinstance = MyXMPP2.getInstance(ChatActivity.this, getString(R.string.server), mykey);
+
+        han.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                runn = this;
+//                Log.d(TAG,"handler chatact onresume"+myxinstance.isConnected());
+
+                if (!myxinstance.isConnected()) {
+                    myxinstance.init();
+                    Log.d(TAG, "handler chatact onresume2 " + myxinstance.isConnected());
+                }
+                han.postDelayed(runn, 5000);
+            }
+        }, 5000);
+
         username = session.getUsername();
-        loadData();
+        loadData(true);
         Intent intent = new Intent(this, UploadFileService.class);
         startService(intent);
         if (!mServiceBound) {
@@ -354,7 +382,7 @@ public class ChatActivity extends ToadoBaseActivity {
         }
     }
 
-    private void loadData() {
+    private void loadData(Boolean t) {
         Log.d(TAG, "load data called");
         Sort sort[] = {Sort.ASCENDING};
         String[] fieldNames = {"msgid"};
@@ -368,21 +396,29 @@ public class ChatActivity extends ToadoBaseActivity {
             for (ChatMessageRealm cm : shows) {
                 if (!chatList.contains(cm)) {
                     chatList.add(cm);
+                    if (!cm.getMsgstatus().matches("3") && !cm.getSenderjid().matches(mykey)) {
+                        ChatMessageRealm cmn = new ChatMessageRealm(cm.getChatref(), otheruserkey, cm.getMsgstring(), cm.getSenderjid(), cm.getSendertime(), cm.getSenderdate(), "status", cm.getMsgid(), "3");
+                        myxinstance.sendMessage(cmn);
+                    }
                 }
-
                 if (!chatListIds.contains(cm.getMsgid())) {
                     chatListIds.add(cm.getMsgid());
                 }
-
                 mAdapter.notifyDataSetChanged();
             }
             mAdapter.notifyDataSetChanged();
-//            recyclerView.scrollToPosition(chatList.size() - 1);
+
+            if (t)
+                scrollRV();
+
         } else {
             Log.d(TAG, "load data called else");
         }
     }
 
+    private void scrollRV() {
+        recyclerView.scrollToPosition(chatList.size() - 1);
+    }
 
     private void checkChatRef(String otheruserkey) {
         RealmQuery<ActiveChatsRealm> query = mRealm.where(ActiveChatsRealm.class);
@@ -400,7 +436,6 @@ public class ChatActivity extends ToadoBaseActivity {
     protected void onStart() {
         super.onStart();
         registerReceiver(this.reloadData, new IntentFilter("reloadchataction"));
-
     }
 
     @Override
@@ -413,6 +448,7 @@ public class ChatActivity extends ToadoBaseActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        han.removeCallbacks(runn);
         if (mServiceBound) {
             unbindService(muploadserconn);
             mServiceBound = false;
@@ -444,7 +480,6 @@ public class ChatActivity extends ToadoBaseActivity {
                                     try {
                                         in = getContentResolver().openInputStream(Uri.parse(imguri));
                                         out = new FileOutputStream(file);
-
                                         int bytesRead;
                                         while ((bytesRead = in.read(imageData)) > 0) {
                                             out.write(Arrays.copyOfRange(imageData, 0, Math.max(0, bytesRead)));
@@ -542,14 +577,14 @@ public class ChatActivity extends ToadoBaseActivity {
                     intent.putExtra("comment_type", "location");
                     startImageComment(intent);
                 } else if (requestCode == PICK_DOCS) {
-                    String filePath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
+                    String filePath = data.getStringExtra("path");
                     Log.d(TAG, "file path of picked docs" + filePath);
                     Intent intent = new Intent(ChatActivity.this, ImageComment.class);
                     intent.putExtra("otheruserkey", otheruserkey);
                     intent.putExtra("mykey", mykey);
                     intent.putExtra("URI", filePath);
                     intent.putExtra("comment_type", "doc");
-                    startImageComment(intent);
+//                    startImageComment(intent);
                 }
             }
 
@@ -579,14 +614,15 @@ public class ChatActivity extends ToadoBaseActivity {
         public void onReceive(Context context, Intent intent) {
             if (intent.getStringExtra("reloadchat") != null) {
                 Log.d(TAG, " reloading data broadcast receiver" + intent.getStringExtra("reloadchat"));
-                loadData();
+                loadData(false);
                 mAdapter.notifyDataSetChanged();
+                scrollRV();
             } else if (intent.getStringExtra("reloadchatmediastatus") != null) {
                 String stringext = intent.getStringExtra("reloadchatmediastatus");
                 Log.d(TAG, " reloading data status " + intent.getStringExtra("reloadchatmediastatus"));
                 Log.d(TAG, " reloading data media id " + intent.getStringExtra("reloadchatmediaid"));
                 if (stringext.matches(MEDIA_STARTING)) {
-                    loadData();
+                    loadData(false);
                 } else if (stringext.matches(MEDIA_PROGRESSING) || stringext.matches(MEDIA_SUCCESS)) {
                     final String msgid = intent.getStringExtra("reloadchatmediaid");
                     String fileprogress = intent.getStringExtra("reloadchatmediaprogresstatus");
@@ -594,9 +630,6 @@ public class ChatActivity extends ToadoBaseActivity {
                     Log.d(TAG, ind1 + "chat list broadcast progress " + fileprogress);
                     try {
                         View ve = linearLayoutManager.findViewByPosition(ind1);
-//                        View v = recyclerView.findViewHolderForAdapterPosition(ind1).itemView;
-
-//                        View v = recyclerView.findViewHolderForLayoutPosition(ind1).itemView;
                         ChatAdapter1.MyViewHolder holder = (ChatAdapter1.MyViewHolder) recyclerView.getChildViewHolder(ve);
                         mAdapter.setUploadProgress(holder, fileprogress, stringext);
                     } catch (Exception e) {
@@ -608,9 +641,6 @@ public class ChatActivity extends ToadoBaseActivity {
                     Log.d(TAG, ind1 + "chat list broadcast  download starting");
                     try {
                         View ve = linearLayoutManager.findViewByPosition(ind1);
-//                        View v = recyclerView.findViewHolderForAdapterPosition(ind1).itemView;
-
-//                        View v = recyclerView.findViewHolderForLayoutPosition(ind1).itemView;
                         ChatAdapter1.MyViewHolder holder = (ChatAdapter1.MyViewHolder) recyclerView.getChildViewHolder(ve);
                         mAdapter.setDownloadProgress(holder, stringext, "0", "");
                     } catch (Exception e) {
@@ -623,9 +653,6 @@ public class ChatActivity extends ToadoBaseActivity {
                     Log.d(TAG, ind1 + "chat list broadcast  download progressing" + fileprogress);
                     try {
                         View ve = linearLayoutManager.findViewByPosition(ind1);
-//                        View v = recyclerView.findViewHolderForAdapterPosition(ind1).itemView;
-
-//                        View v = recyclerView.findViewHolderForLayoutPosition(ind1).itemView;
                         ChatAdapter1.MyViewHolder holder = (ChatAdapter1.MyViewHolder) recyclerView.getChildViewHolder(ve);
                         mAdapter.setDownloadProgress(holder, stringext, fileprogress, "");
                     } catch (Exception e) {
@@ -638,9 +665,6 @@ public class ChatActivity extends ToadoBaseActivity {
                     Log.d(TAG, ind1 + "chat list broadcast  download failed");
                     try {
                         View ve = linearLayoutManager.findViewByPosition(ind1);
-//                        View v = recyclerView.findViewHolderForAdapterPosition(ind1).itemView;
-
-//                        View v = recyclerView.findViewHolderForLayoutPosition(ind1).itemView;
                         ChatAdapter1.MyViewHolder holder = (ChatAdapter1.MyViewHolder) recyclerView.getChildViewHolder(ve);
                         mAdapter.setDownloadProgress(holder, stringext, fileprogress, "");
                     } catch (Exception e) {
@@ -650,19 +674,73 @@ public class ChatActivity extends ToadoBaseActivity {
                     final String msgid = intent.getStringExtra("reloadchatmediaid");
                     final String localurl = intent.getStringExtra("reloadchatmedialocalurl");
                     final int ind1 = chatListIds.indexOf(msgid);
+
                     String fileprogress = intent.getStringExtra("reloadchatmediaprogresstatus");
                     Log.d(TAG, ind1 + "chat list broadcast  download success" + localurl);
                     try {
-//                        loadData();
                         View ve = linearLayoutManager.findViewByPosition(ind1);
-//                        View v = recyclerView.findViewHolderForAdapterPosition(ind1).itemView;
-
-//                        View v = recyclerView.findViewHolderForLayoutPosition(ind1).itemView;
                         ChatAdapter1.MyViewHolder holder = (ChatAdapter1.MyViewHolder) recyclerView.getChildViewHolder(ve);
                         mAdapter.setDownloadProgress(holder, stringext, fileprogress, localurl);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                }
+            } else if (intent.getStringExtra("messagedeliverystatus") != null) {
+                try {
+                    final String a = intent.getStringExtra("messagedeliverystatus");
+                    final int ind1 = chatListIds.indexOf(a);
+                    final ChatMessageRealm cm = mRealm.copyFromRealm(chatList.get(ind1));
+                    Log.d(TAG, a + " delivery status chat activity " + cm.getMsgstatus());
+                    final ChatMessageRealm cmn = new ChatMessageRealm(cm.getChatref(), cm.getOtherjid(), cm.getMsgstring(), cm.getSenderjid(), cm.getSendertime(), cm.getSenderdate(), cm.getMsgtype(), cm.getMsgid(), "2", cm.getMsgweburl(), cm.getMsglocalurl(), cm.getMediathumbnail());
+                    mRealm.executeTransactionAsync(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm bgRealm) {
+                            try {
+                                bgRealm.copyToRealmOrUpdate(cmn);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, new Realm.Transaction.OnSuccess() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d(TAG, "new status stored realm success chatact");
+                            Log.d(TAG, a + "delivery status chat activity" + cm.getMsgid() + "  " + cm.getMsgstatus());
+                            try {
+                                if (linearLayoutManager.findViewByPosition(ind1) != null) {
+                                    View ve = linearLayoutManager.findViewByPosition(ind1);
+                                    if (recyclerView.getChildViewHolder(ve) != null) {
+                                        ChatAdapter1.MyViewHolder holder = (ChatAdapter1.MyViewHolder) recyclerView.getChildViewHolder(ve);
+                                        mAdapter.setDeliveryStatus(holder, "2");
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, new Realm.Transaction.OnError() {
+                        @Override
+                        public void onError(Throwable error) {
+                            // Transaction failed and was automatically canceled.
+                            error.printStackTrace();
+                            Log.d(TAG, "new status stored realm failed chatact");
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (intent.getStringExtra("readstatus") != null) {
+                try {
+                    final String a = intent.getStringExtra("readstatus");
+                    final int ind1 = chatListIds.indexOf(a);
+                    final ChatMessageRealm cm = mRealm.copyFromRealm(chatList.get(ind1));
+                    Log.d(TAG, a + " read status chat activity " + cm.getMsgstring());
+                    View ve = linearLayoutManager.findViewByPosition(ind1);
+                    ChatAdapter1.MyViewHolder holder = (ChatAdapter1.MyViewHolder) recyclerView.getChildViewHolder(ve);
+                    mAdapter.setDeliveryStatus(holder, "3");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    loadData(false);
                 }
             }
         }
@@ -673,6 +751,8 @@ public class ChatActivity extends ToadoBaseActivity {
         if (layoutToAdd.getVisibility() == View.VISIBLE || layoutToAdd2.getVisibility() == View.VISIBLE) {
             layoutToAdd.setVisibility(View.GONE);
             layoutToAdd2.setVisibility(View.GONE);
+        } else if (mAdapter.isActionEnabled()) {
+            mAdapter.removeItems();
         } else
             finish();
     }
@@ -700,7 +780,6 @@ public class ChatActivity extends ToadoBaseActivity {
         startImageComment(in);
         layoutToAdd.setVisibility(View.GONE);
         layoutToAdd2.setVisibility(View.GONE);
-
     }
 
     public void onBack(View view) {

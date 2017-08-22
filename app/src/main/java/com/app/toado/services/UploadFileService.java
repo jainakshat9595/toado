@@ -50,7 +50,6 @@ public class UploadFileService extends Service {
     public static final String MEDIA_DOWNLOAD_PROGRESS = "DOWNLOAD progressing";
 
     public UploadFileService() {
-
     }
 
     @Override
@@ -119,10 +118,8 @@ public class UploadFileService extends Service {
         Log.d(TAG,   thumbpath + " file path extension upload file " + path);
 
         new AsyncTask<Void, Void, Void>() {
-
             @Override
             protected Void doInBackground(Void... params) {
-
                 Log.d(TAG,path+ " thumbpath " + thumbpath);
                 riversRef.putFile(Uri.fromFile(new File(thumbpath))).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
@@ -160,13 +157,10 @@ public class UploadFileService extends Service {
                                 .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                                     @Override
                                     public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-
                                         int progress = (int) ((100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount());
                                         sendBroadcast(new Intent().putExtra("reloadchatmediastatus", MEDIA_PROGRESSING).putExtra("reloadchatmediaprogresstatus", progress + " ").putExtra("reloadchatmediaid", String.valueOf(id)).putExtra("reloadchatmedialocalurl", path).setAction("reloadchataction"));
-
                                     }
                                 });
-
                     }
                 });
 
@@ -207,32 +201,6 @@ public class UploadFileService extends Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
-//        Uri downloadUri = Uri.parse(url);
-//        Uri destinationUri = Uri.parse(file.getAbsolutePath());
-//        Log.d(TAG, downloadUri+" downloaduri , destination uri"+destinationUri);
-//        DownloadRequest downloadRequest = new DownloadRequest(downloadUri)
-//                .setRetryPolicy(new DefaultRetryPolicy())
-//                .setDestinationURI(destinationUri).setPriority(DownloadRequest.Priority.HIGH)
-//                .setDownloadContext(act)//Optional
-//                .setDownloadListener(new DownloadStatusListener() {
-//                    @Override
-//                    public void onDownloadComplete(int id) {
-//                        Log.d(TAG, "file download complete"+id);
-//                    }
-//
-//                    @Override
-//                    public void onDownloadFailed(int id, int errorCode, String errorMessage) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onProgress(int id, long totalBytes, long downlaodedBytes, int progress) {
-//                        Log.d(TAG, id+"file download progress"+progress);
-//
-//                    }
-//                });
 
     }
 

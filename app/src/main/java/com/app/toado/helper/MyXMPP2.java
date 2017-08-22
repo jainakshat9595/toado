@@ -32,6 +32,7 @@ import org.jivesoftware.smackx.receipts.ReceiptReceivedListener;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -128,19 +129,18 @@ public class MyXMPP2 {
             @Override
             public void processPacket(Stanza packet) throws NotConnectedException {
 
-                Log.d(TAG, packet.getExtensions() + "stanza listener calling reload data chat act broadcast" + packet.getStanzaId());
-
                 int a = packet.getExtensions().size();
                 for (int i = 0; i < a; i++) {
                     Log.d(TAG, " packet extensions" + packet.getExtensions().get(i).getNamespace());
                     Log.d(TAG, " packet extensions" + packet.getExtensions().get(i).getElementName());
                     Log.d(TAG, " packet extensions" + packet.getStanzaId());
+
                 }
 
                 if (packet instanceof Message && ((Message) packet).getBody() != null) {
                     final Message m = (Message) packet;
-                    Log.d(TAG, "message paacket stanza listener" + m.getBody() + m.getFrom());
 
+                    Log.d(TAG, m.getFrom() + " message paacket stanza listener " + m.getBody());
 
                     context.runOnUiThread(new Runnable() {
                         @Override
@@ -176,6 +176,7 @@ public class MyXMPP2 {
                 Log.i(TAG, "MSG DELIVERED Receipt id  " + receiptId);
                 Log.i(TAG, "MSG DELIVERED recipt " + receipt.getStanzaId());
                 Log.i(TAG, "MSG DELIVERED body " + receipt.getFrom() + receipt.getTo());
+                context.sendBroadcast(new Intent().putExtra("messagedeliverystatus", receiptId).setAction("reloadchataction"));
             }
         });
 
@@ -289,17 +290,15 @@ public class MyXMPP2 {
     }
 
     public void sendMessage(final ChatMessageRealm chatMessage) {
-        Log.d(TAG, "sending message" + chatMessage.getMsgstring() + chatMessage.getOtherjid());
+        Log.d(TAG, chatMessage.getMsgtype() + "sending message" + chatMessage.getMsgid() + " " + chatMessage.getOtherjid() + "   " + chatMessage.getMsgstring());
 
         if (!connected)
             init();
 
-        if (!chat_created) {
-            Mychat = ChatManager.getInstanceFor(connection).createChat(
-                    chatMessage.getOtherjid() + "@" + context.getString(R.string.server_host) + "/Smack",
-                    mMessageListener);
-            chat_created = true;
-        }
+        Mychat = ChatManager.getInstanceFor(connection).createChat(
+                chatMessage.getOtherjid() + "@" + context.getString(R.string.server_host) + "/Smack",
+                mMessageListener);
+        chat_created = true;
 
         context.runOnUiThread(new Runnable() {
             @Override
@@ -311,7 +310,7 @@ public class MyXMPP2 {
             }
         });
 
-        Log.d(TAG, userkey+getUserKey()+"message object sending" + message.getStanzaId() + message.getBody());
+        Log.d(TAG, userkey + getUserKey() + "message object sending" + " Mychat " + Mychat.getParticipant() + chatMessage.getMsgtype());
 
         try {
             if (connection.isAuthenticated()) {
@@ -568,6 +567,10 @@ public class MyXMPP2 {
         }
 
 
+    }
+
+    public static boolean isConnected() {
+        return connected;
     }
 
 

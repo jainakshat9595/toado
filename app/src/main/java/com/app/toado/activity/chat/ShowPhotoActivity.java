@@ -66,7 +66,6 @@ public class ShowPhotoActivity extends Activity {
         sender = getIntent().getStringExtra("username");
         mykey = getIntent().getStringExtra("mykey");
         otheruserkey = getIntent().getStringExtra("otheruserkey");
-
         relsingle = (RelativeLayout) findViewById(R.id.relsingle);
         relmultiple = (RelativeLayout) findViewById(R.id.relmultiple);
 
@@ -157,7 +156,7 @@ public class ShowPhotoActivity extends Activity {
         if (getIntent().getStringArrayListExtra("pathmultiple") != null) {
             Log.d(TAG, "string arr list" + stringArrayList.size());
             for (int i = 0 ;i<stringArrayList.size();i++) {
-                     Log.d(TAG,stringArrayList.get(i)+ " vals " + arrstrings[i]);
+                    Log.d(TAG,stringArrayList.get(i)+ " vals " + arrstrings[i]);
                     uploadFile(arrstrings[i],stringArrayList.get(i).getPath(), "photo");
             }
         } else if (getIntent().getStringExtra("path") != null) {
@@ -167,11 +166,8 @@ public class ShowPhotoActivity extends Activity {
 
         } else if (getIntent().getStringExtra("path1") != null) {
             Log.d(TAG, "get path imagecomment2 " + imagePath1);
-
             uploadFile(commentString, imagePath1, "photo");
-
         }
-
     }
 
     public void cropImage(View view) {
@@ -219,7 +215,7 @@ public class ShowPhotoActivity extends Activity {
 
     private void uploadFile(String msg, String filePath, String type) {
         try {
-            Log.d(TAG, mykey + " filepath showphoto activity" + filePath + "   " + otheruserkey);
+            Log.d(TAG, mykey + " filepath showphoto activity " + filePath + "   " + otheruserkey);
             if (mServiceBound) {
                 uploadFileService.uploadFile(msg, filePath, type, mykey, otheruserkey, sender, this);
             }

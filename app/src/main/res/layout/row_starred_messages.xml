@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/msgbackground"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingRight="40dp">
+
+
+    <ImageView
+        android:id="@+id/icon_profile"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="10dp"
+        android:layout_weight="0"
+        android:background="@drawable/bg_circle" />
+
+    <TextView
+        android:id="@+id/tvparticipants"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/icon_profile"
+        android:layout_marginTop="5dp"
+        android:layout_toRightOf="@+id/icon_profile"
+        android:text="You > Ghanendra"
+        android:textColor="#455A64"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/icon_profile"
+        android:layout_marginTop="5dp"
+        android:layout_alignParentEnd="true"
+        android:text="Today"
+        android:textColor="#6E6D6C"  />
+
+    <RelativeLayout
+        android:id="@+id/rel1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/icon_profile"
+        android:layout_toRightOf="@+id/icon_profile">
+
+        <android.support.design.widget.CoordinatorLayout
+            android:id="@+id/imgchatrel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/msgreceiverbox"
+            android:padding="5dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/imgchat"
+                android:layout_width="250dp"
+                android:layout_height="280dp"
+                android:adjustViewBounds="true"
+                android:background="@color/black"
+                android:src="@drawable/whatsapplogo"
+                android:visibility="visible" />
+
+            <LinearLayout
+                android:id="@+id/layonimage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|right"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/iconstar2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|right"
+                    android:layout_margin="1dp"
+                    android:layout_weight="0"
+                    android:gravity="center"
+                    android:src="@drawable/iconstar2"
+                    android:visibility="gone"
+                    app:layout_anchor="@+id/imgchat" />
+
+                <TextView
+                    android:id="@+id/timestampnotext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="1dp"
+                    android:text="2:46 PM"
+                    android:textColor="@color/white" />
+
+                <ImageView
+                    android:id="@+id/status2"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_gravity="bottom"
+                    android:layout_marginLeft="2dp"
+                    android:layout_weight="0"
+                    android:gravity="bottom"
+                    android:paddingTop="1dp"
+                    android:src="@mipmap/ic_pending" />
+
+            </LinearLayout>
+
+        </android.support.design.widget.CoordinatorLayout>
+
+        <LinearLayout
+            android:id="@+id/msglay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/imgchatrel"
+            android:layout_alignRight="@+id/imgchatrel"
+            android:layout_below="@+id/imgchatrel"
+            android:background="@drawable/msgreceiverbox"
+            android:gravity="start"
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:weightSum="2">
+
+            <TextView
+                android:id="@+id/commentString"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/imgchatrel"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="2"
+                android:gravity="start"
+                android:text="hi"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|bottom"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/iconstar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:gravity="bottom"
+                    android:src="@drawable/iconstar2"
+                    android:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/meSender_TimeStamp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_weight="0"
+                    android:gravity="bottom"
+                    android:text="12:46 PM"
+                    android:textSize="10sp" />
+                <ImageView
+                    android:id="@+id/status"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_gravity="bottom"
+                    android:layout_marginLeft="2dp"
+                    android:layout_weight="0"
+                    android:gravity="bottom"
+                    android:paddingTop="1dp"
+                    android:src="@mipmap/ic_pending" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+
+    <View
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_below="@+id/rel1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        android:background="#DDDDDD" />
+
+</RelativeLayout>

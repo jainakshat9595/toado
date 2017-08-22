@@ -24,7 +24,9 @@ import android.widget.Toast;
 import com.app.toado.R;
 import com.app.toado.activity.BaseActivity;
 import com.app.toado.activity.calls.CallScreenActivity;
+import com.app.toado.activity.chat.StarMessageActivity;
 import com.app.toado.activity.settings.SettingsActivity;
+import com.app.toado.adapter.StarredMessageAdapter;
 import com.app.toado.fragments.mainviewpager.MainpagerAdapter;
 import com.app.toado.fragments.mainviewpager.MainpagerItems;
 import com.app.toado.helper.MyXMPP2;
@@ -264,6 +266,9 @@ public class MainAct extends BaseActivity {
                         break;
                     case (R.id.menulogout):
                         ToadoAlerts.showLogoutAlert(MainAct.this, usess);
+                        break;
+                    case (R.id.menustar):
+                        startActivity(new Intent(MainAct.this, StarMessageActivity.class));
                         break;
                 }
                 return true;

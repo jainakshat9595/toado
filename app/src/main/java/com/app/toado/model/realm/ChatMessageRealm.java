@@ -1,14 +1,18 @@
 package com.app.toado.model.realm;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.app.toado.model.ChatMessage;
 import com.google.firebase.database.DataSnapshot;
 
+import java.io.Serializable;
 import java.util.Random;
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
-public class ChatMessageRealm extends RealmObject{
+public class ChatMessageRealm extends RealmObject {
 
     @PrimaryKey
     private String msgid;// msg sending time in millis
@@ -23,14 +27,15 @@ public class ChatMessageRealm extends RealmObject{
     private String msgweburl;
     private String chatref;
     private String mediathumbnail;
+    private Boolean star;
 
     public ChatMessageRealm() {
     }
 
     //for text msgs
-    public ChatMessageRealm(String chatref,String otherjid,String msgstring, String senderjid, String sendertime,String senderdate, String msgtype, String msgid, String msgstatus) {
-        this.chatref=chatref;
-        this.otherjid=otherjid;
+    public ChatMessageRealm(String chatref, String otherjid, String msgstring, String senderjid, String sendertime, String senderdate, String msgtype, String msgid, String msgstatus ) {
+        this.chatref = chatref;
+        this.otherjid = otherjid;
         this.msgstring = msgstring;
         this.senderjid = senderjid;
         this.sendertime = sendertime;
@@ -41,9 +46,9 @@ public class ChatMessageRealm extends RealmObject{
     }
 
     //for media msgs
-    public ChatMessageRealm(String chatref,String otherjid,String msgstring, String senderjid, String sendertime,String senderdate, String msgtype, String msgid, String msgstatus,  String msgweburl,String msglocalurl,String mediathumbnail) {
-        this.chatref=chatref;
-        this.otherjid=otherjid;
+    public ChatMessageRealm(String chatref, String otherjid, String msgstring, String senderjid, String sendertime, String senderdate, String msgtype, String msgid, String msgstatus, String msgweburl, String msglocalurl, String mediathumbnail ) {
+        this.chatref = chatref;
+        this.otherjid = otherjid;
         this.msgstring = msgstring;
         this.senderjid = senderjid;
         this.sendertime = sendertime;
@@ -52,9 +57,36 @@ public class ChatMessageRealm extends RealmObject{
         this.msgid = msgid;
         this.msgstatus = msgstatus;
         this.msgweburl = msgweburl;
-        this.msglocalurl=msglocalurl;
-        this.mediathumbnail=mediathumbnail;
+        this.msglocalurl = msglocalurl;
+        this.mediathumbnail = mediathumbnail;
     }
+
+    //for star msgs
+    public ChatMessageRealm(String chatref, String otherjid, String msgstring, String senderjid, String sendertime, String senderdate, String msgtype, String msgid, String msgstatus, String msgweburl, String msglocalurl, String mediathumbnail,Boolean star) {
+        this.chatref = chatref;
+        this.otherjid = otherjid;
+        this.msgstring = msgstring;
+        this.senderjid = senderjid;
+        this.sendertime = sendertime;
+        this.senderdate = senderdate;
+        this.msgtype = msgtype;
+        this.msgid = msgid;
+        this.msgstatus = msgstatus;
+        this.msgweburl = msgweburl;
+        this.msglocalurl = msglocalurl;
+        this.mediathumbnail = mediathumbnail;
+        this.star=star;
+    }
+
+    //for read status
+    public ChatMessageRealm(String msgid, String msgtype, String msgstatus, String otherjid) {
+        this.msgid = msgid;
+        this.msgstatus = msgstatus;
+        this.msgtype = msgtype;// 'readstatus' will be the msgtype for such msgs
+        this.otherjid = otherjid;
+    }
+
+
 
 
     public String getMediathumbnail() {
@@ -153,4 +185,11 @@ public class ChatMessageRealm extends RealmObject{
         this.msgweburl = msgweburl;
     }
 
+    public Boolean getStar() {
+        return star;
+    }
+
+    public void setStar(Boolean star) {
+        this.star = star;
+    }
 }

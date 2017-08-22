@@ -12,9 +12,9 @@
         android:id="@+id/rel1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#075E54"
+        android:background="@color/actionbarchatact"
         android:clickable="true"
-        android:padding="10dp"
+        android:padding="7dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true">
 
@@ -153,7 +153,7 @@
             android:weightSum="3">
 
             <ImageButton
-                android:id="@+id/button"
+                android:id="@+id/buttondocs"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:layout_gravity="center_vertical"
@@ -265,7 +265,7 @@
             android:weightSum="3">
 
             <ImageButton
-                android:id="@+id/button2"
+                android:id="@+id/buttondocs2"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:layout_gravity="center_vertical"

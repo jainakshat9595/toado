@@ -10,6 +10,10 @@
         android:title="Settings"/>
 
     <item
+        android:id="@+id/menustar"
+        android:title="Starred messages"/>
+
+    <item
         android:id="@+id/menulogout"
         android:title="Logout"/>
 

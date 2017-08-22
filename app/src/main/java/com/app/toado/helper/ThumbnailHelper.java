@@ -44,7 +44,8 @@ public class ThumbnailHelper {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            ThumbImage.recycle();
+            if(ThumbImage!=null)
+                ThumbImage.recycle();
             return thumbnailFile.getAbsolutePath();
         }
     }

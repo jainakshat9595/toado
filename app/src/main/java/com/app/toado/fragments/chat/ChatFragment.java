@@ -4,18 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -24,32 +18,18 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.app.toado.R;
-import com.app.toado.activity.chat.ChatActivity;
 //import com.app.toado.activity.chat.ChatActivity1;
-import com.app.toado.activity.chat.NewChatActivity;
+import com.app.toado.activity.chat.ForwardChatActivity;
 import com.app.toado.adapter.ChatListAdapter;
 import com.app.toado.helper.MarshmallowPermissions;
 import com.app.toado.model.realm.ActiveChatsRealm;
-import com.app.toado.model.realm.ChatMessageRealm;
 import com.app.toado.settings.UserSession;
-import com.app.toado.model.ChatListModel;
-import com.app.toado.model.User;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
-
-import static com.app.toado.helper.ToadoConfig.DBREF;
-import static com.app.toado.helper.ToadoConfig.DBREF_CHATS;
-import static com.app.toado.helper.ToadoConfig.DBREF_USERS_CHATS;
-import static com.app.toado.helper.ToadoConfig.DBREF_USER_PROFILES;
 
 /**
  * Created by ghanendra on 14/06/2017.
@@ -114,7 +94,6 @@ public class ChatFragment extends Fragment {
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-//        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
         mAdapter = new ChatListAdapter(list, getActivity(),us.getUserKey());
         recyclerView.setAdapter(mAdapter);
 
@@ -123,10 +102,10 @@ public class ChatFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (marshper.checkPermissionForContacts()) {
-                    getContext().startActivity(new Intent(getActivity(), NewChatActivity.class));
+                    getContext().startActivity(new Intent(getActivity(), ForwardChatActivity.class));
                 } else {
                     marshper.requestPermissionForContacts();
-                    getContext().startActivity(new Intent(getActivity(), NewChatActivity.class));
+                    getContext().startActivity(new Intent(getActivity(), ForwardChatActivity.class));
                 }
             }
         });
