@@ -11,6 +11,7 @@ import com.app.toado.model.ChatMessage;
 import com.app.toado.model.User;
 import com.app.toado.model.realm.ActiveChatsRealm;
 import com.app.toado.model.realm.ChatMessageRealm;
+import com.app.toado.model.realm.UploadTable;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -30,6 +31,7 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
 import static com.app.toado.helper.ToadoConfig.DBREF_USER_PROFILES;
+import static com.app.toado.services.UploadFileService.MEDIA_QUEUED;
 
 /**
  * Created by ghanendra on 09/07/2017.
@@ -298,20 +300,37 @@ public class ChatHelper {
     public static void deleteItems(ChatMessageRealm cm) {
         Realm realm = Realm.getDefaultInstance();
 
-            final RealmResults<ChatMessageRealm> results = realm.where(ChatMessageRealm.class).equalTo("msgid", cm.getMsgid()).findAll();
+        final RealmResults<ChatMessageRealm> results = realm.where(ChatMessageRealm.class).equalTo("msgid", cm.getMsgid()).findAll();
 
-            // All changes to data must happen in a transaction
-            realm.executeTransaction(new Realm.Transaction() {
-                @Override
-                public void execute(Realm realm) {
-                    results.deleteAllFromRealm();
-                }
-            });
+        // All changes to data must happen in a transaction
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                results.deleteAllFromRealm();
+            }
+        });
 
         realm.close();
     }
 
-    public static void starMessage(final ChatMessageRealm cm){
+    public static void queueUpload(final String msg, final String filePath, final String type, final String mykey, final String otheruserkey, final String sender,final String uploadstatus) {
+        final Realm re = Realm.getDefaultInstance();
+        re.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                UploadTable ut = new UploadTable(msg,String.valueOf(GetTimeStamp.Id()), type, filePath, mykey, otheruserkey, sender, uploadstatus);
+                realm.insertOrUpdate(ut);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                Log.d(TAG, "realm succcess upload added");
+                re.close();
+            }
+        });
+    }
+
+    public static void starMessage(final ChatMessageRealm cm) {
         Realm realm = Realm.getDefaultInstance();
         // All changes to data must happen in a transaction
         realm.executeTransaction(new Realm.Transaction() {

@@ -1,14 +1,17 @@
-package com.app.toado.activity;
+package com.app.toado.activity.chat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Geocoder;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -16,9 +19,11 @@ import android.widget.Toast;
 import com.app.toado.R;
 import com.app.toado.helper.GetTimeStamp;
 import com.app.toado.helper.OpenFile;
-import com.app.toado.settings.UserMediaPrefs;
 import com.app.toado.settings.UserSession;
-import com.app.toado.model.ChatMessage;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -28,32 +33,22 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.OnProgressListener;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
-import static com.app.toado.helper.ToadoConfig.DBREF;
-import static com.app.toado.helper.ToadoConfig.DBREF_CHATS;
 import static com.app.toado.helper.ToadoConfig.DBREF_USER_LOC;
-import static com.app.toado.helper.ToadoConfig.STORAGE_REFERENCE;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener,
         GoogleMap.OnMapLongClickListener,
         GoogleMap.OnMapClickListener,
         GoogleMap.OnMarkerClickListener {
 
+    public static final String FRAGTAG = "PlacePickerFragment";
     private GoogleMap mMap;
     Marker marker;
     String username, mykey;
@@ -63,6 +58,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String otheruserkey;
     Double mlat, mlng;
     private String TAG = "MAPSACTIVITY";
+    int PLACE_PICKER_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,21 +68,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mykey = session.getUserKey();
         username = session.getUsername();
 
-        Intent intent = getIntent();
-        comment_type = intent.getStringExtra("comment_type");
-        sender = intent.getStringExtra("username");
-        mykey = intent.getStringExtra("mykey");
-        otheruserkey = intent.getStringExtra("otheruserkey");
+        PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+        try {
+            startActivityForResult(builder.build(this), PLACE_PICKER_REQUEST);
+        } catch (GooglePlayServicesRepairableException e) {
+            e.printStackTrace();
+        } catch (GooglePlayServicesNotAvailableException e) {
+            e.printStackTrace();
+        }
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+//        Intent intent = getIntent();
+//        comment_type = intent.getStringExtra("comment_type");
+//        sender = intent.getStringExtra("username");
+//        mykey = intent.getStringExtra("mykey");
+//        otheruserkey = intent.getStringExtra("otheruserkey");
+//
+//        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+//        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+//                .findFragmentById(R.id.map);
+//        mapFragment.getMapAsync(this);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {return;
+        }
+        mMap.setMyLocationEnabled(true);
+
+
         DBREF_USER_LOC.child(mykey).child("l").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -94,12 +104,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mlng = Double.parseDouble(dataSnapshot.child("1").getValue().toString());
                 LatLng la = new LatLng(mlat, mlng);
                 System.out.println("marker datasnap mapsact" + mlat + " " + mlng);
-                marker = mMap.addMarker(new MarkerOptions()
-                        .position(la)
-                        .icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                        .title(getAddressFromLatLng(la)));
-                marker.showInfoWindow();
                 CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(la, 15);
                 mMap.moveCamera(cu);
             }
@@ -110,13 +114,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                System.out.println("map onclick form oncreate mapsact");
-                putMarker(latLng);
-            }
-        });
     }
 
     public void putMarker(LatLng latLng) {
@@ -137,9 +134,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapClick(LatLng latLng) {
         System.out.println("map clicked mapsact" + latLng);
-        putMarker(latLng);
-        mlat = latLng.latitude;
-        mlng = latLng.longitude;
     }
 
     @Override
@@ -149,7 +143,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        putMarker(latLng);
+
     }
 
     @Override
@@ -211,6 +205,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PLACE_PICKER_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlacePicker.getPlace(data, this);
+                String toastMsg = String.format("Place: %s", place.getName());
+                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
 
     @Override
     protected void onStop() {

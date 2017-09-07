@@ -172,18 +172,6 @@ public class ChatAdapter1 extends RecyclerView.Adapter<ChatAdapter1.MyViewHolder
         holder.progressbar.setIndeterminate(true);
         setStatus(mList.get(position).getMsgstatus(), holder);
 
-//        RelativeLayout.LayoutParams msgLayoutParams = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-//        if (holder.getItemViewType() == SENDER) {
-//             setStatus(mList.get(position).getMsgstatus(), holder);
-//            msgLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-//            msgLayoutParams.setMargins(100, 0, 0, 0);
-//            holder.msglay.setLayoutParams(msgLayoutParams);
-//        } else {
-//             msgLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-//            msgLayoutParams.setMargins(0, 0, 100, 0);
-//            holder.msglay.setLayoutParams(msgLayoutParams);
-//        }
-
         switch (comment.getMsgtype()) {
             case "text":
                 String decryptedmsg = comment.getMsgstring();

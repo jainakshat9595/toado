@@ -7,6 +7,8 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="2dp">
 
+
+
     <android.support.design.widget.CoordinatorLayout
         android:id="@+id/imgchatrel"
         android:layout_width="wrap_content"

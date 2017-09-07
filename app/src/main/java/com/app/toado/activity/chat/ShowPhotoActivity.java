@@ -24,13 +24,20 @@ import com.app.toado.R;
 import com.app.toado.adapter.ShowPhotoAdapter;
 import com.app.toado.adapter.utils.SnappyLinearLayoutManager;
 import com.app.toado.adapter.utils.SnappyRecyclerView;
+import com.app.toado.helper.ChatHelper;
+import com.app.toado.helper.GetTimeStamp;
 import com.app.toado.helper.ImageComment;
 import com.app.toado.helper.UriHelper;
 import com.app.toado.model.ShowPhotoModel;
+import com.app.toado.model.realm.UploadTable;
 import com.app.toado.services.UploadFileService;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
+
+import io.realm.Realm;
+
+import static com.app.toado.services.UploadFileService.MEDIA_QUEUED;
 
 public class ShowPhotoActivity extends Activity {
 
@@ -125,7 +132,7 @@ public class ShowPhotoActivity extends Activity {
                     if (!tvcomment2.getText().toString().matches(""))
                         arrstrings[currentFirstVisible] = tvcomment2.getText().toString();
 
-                    Log.d(TAG, "arrstring "+arrstrings[currentFirstVisible]);
+                    Log.d(TAG, "arrstring " + arrstrings[currentFirstVisible]);
 
                     if (arrstrings[currentFirstVisible] != null)
                         tvcomment2.setText(arrstrings[currentFirstVisible]);
@@ -155,9 +162,9 @@ public class ShowPhotoActivity extends Activity {
 
         if (getIntent().getStringArrayListExtra("pathmultiple") != null) {
             Log.d(TAG, "string arr list" + stringArrayList.size());
-            for (int i = 0 ;i<stringArrayList.size();i++) {
-                    Log.d(TAG,stringArrayList.get(i)+ " vals " + arrstrings[i]);
-                    uploadFile(arrstrings[i],stringArrayList.get(i).getPath(), "photo");
+            for (int i = 0; i < stringArrayList.size(); i++) {
+                Log.d(TAG, stringArrayList.get(i) + " vals " + arrstrings[i]);
+                uploadFile(arrstrings[i], stringArrayList.get(i).getPath(), "photo");
             }
         } else if (getIntent().getStringExtra("path") != null) {
             Log.d(TAG, "get path imagecomment1 " + imagePath);
@@ -173,9 +180,8 @@ public class ShowPhotoActivity extends Activity {
     public void cropImage(View view) {
 //        Intent iSelect = new Intent(this, CameraCropActivity.class);
 //        iSelect.putExtra("path", imagePath);
-//        startActivity(iSelect);
+//        startActivity(iSelect);g
     }
-
 
     @Override
     protected void onStop() {
@@ -213,11 +219,13 @@ public class ShowPhotoActivity extends Activity {
         }
     }
 
-    private void uploadFile(String msg, String filePath, String type) {
+    private void uploadFile(String msg, final String filePath, final String type) {
         try {
             Log.d(TAG, mykey + " filepath showphoto activity " + filePath + "   " + otheruserkey);
             if (mServiceBound) {
-                uploadFileService.uploadFile(msg, filePath, type, mykey, otheruserkey, sender, this);
+//                uploadFileService.uploadFile(msg, filePath, type, mykey, otheruserkey, sender, this);
+
+                ChatHelper.queueUpload(msg,filePath,type,mykey,otheruserkey,sender,MEDIA_QUEUED);
             }
         } catch (Exception e) {
             e.printStackTrace();

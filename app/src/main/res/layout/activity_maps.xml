@@ -5,16 +5,100 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:map="http://schemas.android.com/apk/res-auto"
+    <fragment
+        android:id="@+id/fragment_cardstream"
+        xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.app.toado.activity.MapsActivity" />
+        tools:context=".MainActivity"
+        tools:layout="@layout/cardstream"/>
 
+    <!--
+        <RelativeLayout
+            android:id="@+id/rel1"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@color/actionbarchatact"
+            android:clickable="true" >
+
+            <ImageView
+                android:id="@+id/imgback"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:onClick="onBack"
+                android:padding="5dp"
+                android:src="@drawable/ic_arrow_back" />
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="20dp"
+                android:layout_toRightOf="@+id/imgback"
+                android:gravity="center_vertical"
+                android:text="Send Location"
+                android:textColor="#ffffff"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/imgsearch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@+id/btnpopup"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="30dp"
+                android:background="#00ffffff"
+                android:src="@drawable/iconsearch" />
+
+            <com.miguelcatalan.materialsearchview.MaterialSearchView
+                android:id="@+id/search_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <ImageButton
+                android:onClick="openMenu"
+                android:id="@+id/btnpopup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_gravity="right"
+                android:layout_marginRight="10dp"
+                android:background="#00ffffff"
+                android:src="@drawable/iconrefresh" />
+
+        </RelativeLayout>
+
+
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:map="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_below="@+id/rel1"
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/rvNearby"
+            tools:context="com.app.toado.activity.chat.MapsActivity" />
+
+        <android.support.v7.widget.RecyclerView
+            android:visibility="visible"
+            android:id="@+id/rvNearby"
+            android:background="@color/white"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:layout_height="330dp"></android.support.v7.widget.RecyclerView>
+
+    -->
+<!--
     <Button
         android:onClick="sendLoc"
         android:layout_marginBottom="10dp"
@@ -23,4 +107,6 @@
         android:text="send location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+-->
+
 </RelativeLayout>

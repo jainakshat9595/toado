@@ -1,79 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
     android:id="@+id/chatlay"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#E7E4DF"
     android:orientation="vertical">
 
     <LinearLayout
-        android:weightSum="10"
         android:id="@+id/rel1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
         android:background="@color/actionbarchatact"
         android:clickable="true"
         android:padding="7dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true">
+        android:weightSum="10">
 
         <ImageView
-            android:onClick="onBack"
-            android:layout_weight="0"
             android:id="@+id/imgback"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:background="@drawable/rippleffect"
+            android:onClick="onBack"
             android:padding="5dp"
             android:src="@drawable/ic_arrow_back" />
 
         <ImageView
-            android:layout_weight="0"
             android:id="@+id/icon_profile"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_centerVertical="true"
             android:layout_toRightOf="@+id/imgback"
+            android:layout_weight="0"
             android:background="@drawable/bg_circle" />
 
         <TextView
-            android:gravity="center_vertical"
-            android:layout_weight="0"
             android:id="@+id/tvTitle"
             android:layout_width="150dp"
             android:layout_height="match_parent"
             android:layout_centerVertical="true"
             android:layout_marginLeft="5dp"
             android:layout_toRightOf="@+id/icon_profile"
+            android:layout_weight="0"
+            android:gravity="center_vertical"
             android:text="Ghanendra Piplani"
             android:textColor="#ffffff"
             android:textSize="18sp"
             android:textStyle="bold" />
 
         <ImageButton
-            android:layout_marginLeft="10dp"
-            android:layout_gravity="right"
             android:id="@+id/imgvideo"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:layout_marginLeft="10dp"
             android:layout_weight="0"
             android:background="#00ffffff"
             android:src="@drawable/iconvidewhite" />
 
         <ImageButton
             android:id="@+id/imgcall"
-            android:layout_height="match_parent"
             android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginLeft="20dp"
             android:layout_weight="0"
             android:background="#00ffffff"
             android:src="@drawable/iconphonewhite" />
 
-
         <ImageButton
             android:id="@+id/imgsettings"
-            android:layout_height="match_parent"
             android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginLeft="20dp"
             android:layout_weight="0"
             android:background="#00ffffff"
@@ -81,19 +81,16 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/rel1"
-        android:layout_alignTop="@+id/rel1"
-        android:layout_toEndOf="@+id/rel1"
-        android:background="#075E54"
-        android:weightSum="3">
+    <!--<LinearLayout-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_alignBottom="@+id/rel1"-->
+    <!--android:layout_alignTop="@+id/rel1"-->
+    <!--android:layout_toEndOf="@+id/rel1"-->
+    <!--android:background="#075E54"-->
+    <!--android:weightSum="3">-->
 
-
-
-
-    </LinearLayout>
+    <!--</LinearLayout>-->
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/my_recycler_view"
@@ -134,16 +131,16 @@
         android:id="@+id/attachmentpopup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_above="@+id/relcomment"
+        android:layout_centerHorizontal="true"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:background="@drawable/attachmentdrawer"
         android:orientation="vertical"
         android:padding="20dp"
-        android:visibility="gone"
         android:translationZ="1dp"
-        android:weightSum="2"
-        android:layout_above="@+id/relcomment"
-        android:layout_centerHorizontal="true">
+        android:visibility="gone"
+        android:weightSum="2">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -253,8 +250,8 @@
         android:background="@drawable/attachmentdrawer"
         android:orientation="vertical"
         android:padding="20dp"
-        android:visibility="gone"
         android:translationZ="1dp"
+        android:visibility="gone"
         android:weightSum="2">
 
         <LinearLayout
@@ -374,9 +371,9 @@
 
             <LinearLayout
                 android:id="@+id/editcontainer"
-                android:layout_weight="1.0"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0">
 
                 <EditText
                     android:id="@+id/typeComment"
@@ -389,8 +386,8 @@
                     android:maxLines="6"
                     android:paddingLeft="8dp"
                     android:paddingRight="6dp"
-                    android:text=""
-                    android:scrollbars="vertical"/>
+                    android:scrollbars="vertical"
+                    android:text="" />
             </LinearLayout>
 
             <ImageButton

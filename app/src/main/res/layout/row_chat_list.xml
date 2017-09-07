@@ -20,7 +20,9 @@
         android:clickable="true"
         android:orientation="vertical"
         android:paddingLeft="72dp"
-        android:paddingRight="@dimen/padding_list_row">
+        android:paddingRight="@dimen/padding_list_row"
+        android:layout_alignBottom="@+id/icon_container"
+        android:layout_alignParentStart="true">
 
     <TextView
         android:id="@+id/author"

@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('tape-2.0.0-20170801.011145-31.jar'))

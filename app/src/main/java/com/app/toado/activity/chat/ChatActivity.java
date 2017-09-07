@@ -20,6 +20,7 @@ import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
@@ -33,6 +34,7 @@ import android.widget.TextView;
 import com.app.toado.R;
 import com.app.toado.activity.ToadoBaseActivity;
 import com.app.toado.adapter.ChatAdapter1;
+import com.app.toado.helper.ChatHelper;
 import com.app.toado.helper.CircleTransform;
 import com.app.toado.helper.EncryptUtils;
 import com.app.toado.helper.GetTimeStamp;
@@ -40,8 +42,10 @@ import com.app.toado.helper.ImageComment;
 import com.app.toado.helper.MarshmallowPermissions;
 import com.app.toado.helper.MyXMPP2;
 import com.app.toado.helper.OpenFile;
+import com.app.toado.helper.ThumbnailHelper;
 import com.app.toado.helper.UriHelper;
 import com.app.toado.model.realm.ActiveChatsRealm;
+import com.app.toado.model.realm.UploadTable;
 import com.app.toado.settings.UserMediaPrefs;
 import com.app.toado.settings.UserSession;
 import com.app.toado.model.realm.ChatMessageRealm;
@@ -64,6 +68,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import ca.barrenechea.widget.recyclerview.decoration.StickyHeaderDecoration;
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
@@ -80,6 +86,7 @@ import static com.app.toado.services.UploadFileService.MEDIA_SUCCESS;
 public class ChatActivity extends ToadoBaseActivity {
     private EditText typeComment;
     private ImageButton attachment, takephoto, imgdocs1, imgdocs2;
+    ImageView imgback;
     FloatingActionButton sendButton;
     Intent intent;
     private RecyclerView recyclerView;
@@ -125,13 +132,19 @@ public class ChatActivity extends ToadoBaseActivity {
     Runnable runn;
     Handler han;
     StickyHeaderDecoration stickydecor;
-    String[] mimetypes = {"application/pdf","application/docx","application/xlsx","application/pptx","application/pptx","application/txt"};
+    String[] mimetypes = {"application/pdf", "application/docx", "application/xlsx", "application/pptx", "application/pptx", "application/txt"};
+    private RealmResults<UploadTable> result;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat1);
         session = new UserSession(this);
         mykey = session.getUserKey();
+
+        mRealm = Realm.getDefaultInstance();
+        result = mRealm.where(UploadTable.class).findAllAsync();
+        result.addChangeListener(callback);
 
 //      connection = MyXMPP2.getInstance(this,).getConn();
 
@@ -171,6 +184,7 @@ public class ChatActivity extends ToadoBaseActivity {
         sendButton = (FloatingActionButton) findViewById(R.id.sendButton);
         attachment = (ImageButton) findViewById(R.id.attachment);
 
+        imgback = (ImageView) findViewById(R.id.imgback);
         takephoto = (ImageButton) findViewById(R.id.takephoto);
         takephoto2 = (ImageButton) findViewById(R.id.takephoto2);
         galleryattach = (ImageButton) findViewById(R.id.galleryattach);
@@ -184,7 +198,6 @@ public class ChatActivity extends ToadoBaseActivity {
                 pickDocs();
             }
         });
-
         imgdocs2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -241,10 +254,22 @@ public class ChatActivity extends ToadoBaseActivity {
         recyclerView.addItemDecoration(stickydecor);
         recyclerView.setAdapter(mAdapter);
 
+        final View parent = (View) imgback.getParent();  // imgback: the view you want to enlarge hit area
+        parent.post(new Runnable() {
+            public void run() {
+                final Rect rect = new Rect();
+                imgback.getHitRect(rect);
+                rect.top -= 100;    // increase top hit area
+                rect.left -= 100;   // increase left hit area
+                rect.bottom += 100; // increase bottom hit area
+                rect.right += 100;  // increase right hit area
+                parent.setTouchDelegate(new TouchDelegate(rect, imgback));
+            }
+        });
+
         chatlay.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-
                 Rect r = new Rect();
                 chatlay.getWindowVisibleDisplayFrame(r);
                 int screenHeight = chatlay.getRootView().getHeight();
@@ -259,7 +284,6 @@ public class ChatActivity extends ToadoBaseActivity {
             }
         });
 
-        multipleImagesPathList = new ArrayList<>();
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -335,7 +359,7 @@ public class ChatActivity extends ToadoBaseActivity {
     private void pickDocs() {
 
         if (marshmallowPermissions.checkPermissionForReadStorage()) {
-            Intent intent = new Intent(getApplicationContext(),FilePickerActivity.class);
+            Intent intent = new Intent(getApplicationContext(), FilePickerActivity.class);
             startActivityForResult(intent, PICK_DOCS);
             try {
 
@@ -512,7 +536,8 @@ public class ChatActivity extends ToadoBaseActivity {
                     Log.d(TAG, "multiple image select data" + data.getData());
 
                     String[] filePathColumn = {MediaStore.Images.Media.DATA};
-                    imagesEncodedList = new ArrayList<String>();
+                    imagesEncodedList = new ArrayList<>();
+                    multipleImagesPathList = new ArrayList<>();
                     if (data.getClipData() == null) {
 
                         Uri mImageUri = data.getData();
@@ -524,39 +549,22 @@ public class ChatActivity extends ToadoBaseActivity {
                         intent.putExtra("otheruserkey", otheruserkey);
                         intent.putExtra("mykey", mykey);
                         startActivity(intent);
-
                         Log.d(TAG, imageEncoded + " imageencoded");
                     } else {
                         if (data.getClipData() != null) {
                             ClipData mClipData = data.getClipData();
                             ArrayList<Uri> mArrayUri = new ArrayList<Uri>();
                             for (int i = 0; i < mClipData.getItemCount(); i++) {
-
                                 ClipData.Item item = mClipData.getItemAt(i);
                                 Uri uri = item.getUri();
-//                                mArrayUri.add(uri);
                                 multipleImagesPathList.add(UriHelper.getPath(ChatActivity.this, uri));
-                                // Get the cursor
-//                                Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
-//                                // Move to first row
-//                                cursor.moveToFirst();
-//
-//                                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-//                                imageEncoded = cursor.getString(columnIndex);
-//                                imagesEncodedList.add(imageEncoded);
-//                                cursor.close();
-
                             }
-
-                            for (String u : multipleImagesPathList)
-                                Log.v(TAG, multipleImagesPathList.size() + "Selected Images" + u);
                             Intent intent = new Intent(this, ShowPhotoActivity.class);
                             intent.putStringArrayListExtra("pathmultiple", multipleImagesPathList);
                             intent.putExtra("username", otherusername);
                             intent.putExtra("otheruserkey", otheruserkey);
                             intent.putExtra("mykey", mykey);
                             startActivity(intent);
-
                         }
                     }
                 } else if (requestCode == VIDEO_ATTACH) {
@@ -782,11 +790,59 @@ public class ChatActivity extends ToadoBaseActivity {
         layoutToAdd2.setVisibility(View.GONE);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        result.removeChangeListener(callback);
+        mRealm.close();
+    }
+
     public void onBack(View view) {
         finish();
     }
 
+    private OrderedRealmCollectionChangeListener<RealmResults<UploadTable>> callback = new OrderedRealmCollectionChangeListener<RealmResults<UploadTable>>() {
+        @Override
+        public void onChange(RealmResults<UploadTable> chatMessageRealms, OrderedCollectionChangeSet changeSet) {
+            if (changeSet == null) {
+
+                // The first time async returns with an null changeSet.
+            } else {
+                // Called on every update.
+
+                for (UploadTable cmr : chatMessageRealms) {
+                    RealmResults<UploadTable> result2 = mRealm.where(UploadTable.class)
+                            .equalTo("uploadstatus", MEDIA_PROGRESSING)
+                            .findAll();
+                    Log.d(TAG,"result 2 "+result2.size());
+                    if(result2.size()<=0){
+                        final String timestampdate = GetTimeStamp.timeStampDate();
+                        final String timestamptime = GetTimeStamp.timeStampTime();
+                        final long id = GetTimeStamp.Id();
+                        String filename = cmr.getFilepath().substring(cmr.getFilepath().lastIndexOf("/") + 1, cmr.getFilepath().length());
+                        Log.d(TAG, "file name ul service" + filename);
+                        final String thumbpath = ThumbnailHelper.createThumbnail(cmr.getFilepath(), ChatActivity.this, filename, cmr.getFiletype());
+
+
+                        ChatMessageRealm chatm = new ChatMessageRealm(mykey + otheruserkey, otheruserkey, cmr.getMsg(), mykey, timestamptime, timestampdate, cmr.getFiletype(), String.valueOf(id), "0", "", cmr.getFilepath(), thumbpath);
+                        ChatHelper.addChatMesgRealmMedia1(chatm, ChatActivity.this, mykey, otheruserkey);
+                        if (cmr.getFiletype().matches("photo"))
+                            sendBroadcast(new Intent().putExtra("reloadchatmediastatus", MEDIA_STARTING).putExtra("reloadchatmediaid", String.valueOf(id)).putExtra("reloadchatmedialocalurl", cmr.getFilepath()).setAction("reloadchataction"));
+                        else
+                            sendBroadcast(new Intent().putExtra("reloadchatmediastatus", MEDIA_STARTING).putExtra("reloadchatmediaid", String.valueOf(id)).putExtra("reloadchatmedialocalurl", thumbpath).setAction("reloadchataction"));
+
+                        Log.d(TAG, " file path extension upload file " + cmr.getFilepath());
+
+
+                        uploadFileService.firebasestorageMeth(id,timestampdate,timestamptime,thumbpath,cmr.getMsg(),cmr.getFilepath(),cmr.getFiletype(),cmr.getMykey(),cmr.getOtheruserkey(),cmr.getOtherusername(),ChatActivity.this);
+                    }
+                }
+
+
+
+            }
+        }
+    };
+
+
 }
-
-
-

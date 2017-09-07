@@ -1,1 +1,1 @@
-include ':app', ':sinch-android-verification-1.4.1', ':sinch-android-rtc-3.11.1', ':libphonenumber-8.6.0'
+include ':app', ':sinch-android-verification-1.4.1', ':sinch-android-rtc-3.11.1', ':libphonenumber-8.6.0', ':tape-2.0.0-20170801.011145-31'
