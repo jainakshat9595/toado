@@ -39,7 +39,11 @@ import static com.app.toado.services.UploadFileService.MEDIA_QUEUED;
 
 public class ChatHelper {
     private static final String TAG = "CHatHELPER";
-    private static String otherusername = "", otheruserimage = "";
+    private static String otherusername = "";
+    private static String otheruserprofpic = "";
+
+    private static ChatMessageRealm maingson;
+    private  static String mainothr;
 
     public static void goToChatActivity(Context contx, String otheruserkey, String otherusername, String profpic) {
         Intent in = new Intent(contx, ChatActivity.class);
@@ -114,10 +118,12 @@ public class ChatHelper {
                     ChatMessageRealm gsonchat = null;
                     try {
                         gsonchat = gson.fromJson(js, ChatMessageRealm.class);
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     String othr = "";
+                    maingson = gsonchat;
                     if (!mykey.matches(gsonchat.getSenderjid())) {
                         Log.d(TAG, mykey + "  " + gsonchat.getOtherjid() + " gson chat chatherlper1 " + gsonchat.getSenderjid());
                         chat.setChatref(mykey + gsonchat.getSenderjid());
@@ -128,6 +134,7 @@ public class ChatHelper {
                         othr = gsonchat.getOtherjid();
                     }
 
+                    mainothr = othr;
                     Log.d(TAG, gsonchat.getMsgtype() + "othr chathelper " + gsonchat.getMsgstring());
 
                     if (!gsonchat.getMsgtype().matches("status")) {
@@ -153,6 +160,7 @@ public class ChatHelper {
                             chat.setMediathumbnail(gsonchat.getMediathumbnail());
                         bgRealm.insertOrUpdate(chat);
                         checkActiveChats(mykey, othr, gsonchat.getMsgid());
+
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -162,12 +170,47 @@ public class ChatHelper {
             @Override
             public void onSuccess() {
                 System.out.println(message.getBody().contains("\"msgstatus\":\"3\"") + "new message stored realm success chathelper" + message.getStanzaId() + " " + message.getBody());
+
+                final ActiveChatsRealm ac = new ActiveChatsRealm(otheruserprofpic, maingson.getMsgid(), otherusername, maingson.getMsgstring(), maingson.getMsgstatus(), maingson.getSendertime(), false, mainothr, mykey + mainothr, false);
+
+                System.out.println("Akshat");
+                re.close();
+                final Realm re1 = Realm.getDefaultInstance();
+                /*ActiveChatsRealm aa = new ActiveChatsRealm();
+                //ActiveChatsRealm aa = new Activrealm.createObject(ActiveChatsRealm.class, ac.getChatref());
+                aa.setChatref(ac.getChatref());
+                aa.setArchived(ac.getArchived());
+                aa.setLastmsgbody(ac.getLastmsgbody());
+                aa.setLastmsgtime(ac.getLastmsgtime());
+                aa.setLastmsgtype(ac.getLastmsgtype());
+                aa.setOtherkey(ac.getOtherkey());
+                aa.setMsgid(ac.getMsgid());
+                aa.setProfpic(ac.getProfpic());
+                aa.setName(ac.getName());
+                aa.setPinned(ac.getPinned());*/
+                re1.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        try {
+
+                            Log.d(TAG, " active chats add to realm " + ac.getChatref() + " " + ac.getName() + " " + ac.getOtherkey());
+                            realm.copyToRealmOrUpdate(ac);
+                            //realm.insert(aa);
+                        } catch (Exception e) {
+                            ActiveChatsRealm acr = realm.createObject(ActiveChatsRealm.class,ac.getChatref());
+                            realm.copyToRealmOrUpdate(acr);
+                            e.printStackTrace();
+                            re1.close();
+                        }
+                    }
+                });
+
                 if (message.getBody().contains("\"msgstatus\":\"3\""))
                     addMessageRead(context, message.getStanzaId());
                 else
                     context.sendBroadcast(new Intent().putExtra("reloadchat", "yes").setAction("reloadchataction"));
 
-                re.close();
+                re1.close();
             }
         }, new Realm.Transaction.OnError() {
             @Override
@@ -249,9 +292,9 @@ public class ChatHelper {
                 User usr = User.parse(dataSnapshot);
                 Log.d(TAG, "data snap " + dataSnapshot.toString());
                 otherusername = usr.getName();
-                otheruserimage = usr.getProfpicurl();
+                otheruserprofpic = usr.getProfpicurl();
 
-                final ActiveChatsRealm ac = new ActiveChatsRealm(otheruserimage, msgid, otherusername, "nil", "nil", "nil", false, otheruserkey, mykey + otheruserkey, false);
+                final ActiveChatsRealm ac = new ActiveChatsRealm(otheruserprofpic, msgid, otherusername, "nil", "nil", "nil", false, otheruserkey, mykey + otheruserkey, false);
                 final Realm re2 = Realm.getDefaultInstance();
                 re2.executeTransactionAsync(new Realm.Transaction() {
                     @Override

@@ -34,10 +34,14 @@ import static com.app.toado.helper.ToadoConfig.DBREF;
 
 public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyViewHolder> {
     ArrayList<ActiveChatsRealm> list = new ArrayList<>();
+    ArrayList<Boolean> isSelectedList = new ArrayList<Boolean>();
     private Context context;
     EncryptUtils encryptUtils = new EncryptUtils();
     String TAG = "CHATLISTADAPTER";
     String mykey;
+
+    int isAnySelected = -1;
+
     public ChatListAdapter(ArrayList<ActiveChatsRealm> list, Context context,String mykey) {
         this.context = context;
         this.list = list;
@@ -48,6 +52,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
         TextView author, message, timestamp, tvunread;
         ImageView imgProfile;
         RelativeLayout messageContainer;
+        View selectedview;
 
         public MyViewHolder(View itemView) {
             super(itemView);
@@ -57,6 +62,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
             tvunread = (TextView) itemView.findViewById(R.id.unreadmsgs);
             imgProfile = (ImageView) itemView.findViewById(R.id.icon_profile);
             messageContainer = (RelativeLayout) itemView.findViewById(R.id.message_container);
+            selectedview = (View) itemView.findViewById(R.id.selectedview);
         }
 
     }
@@ -68,10 +74,12 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
     }
 
     @Override
-    public void onBindViewHolder(final MyViewHolder holder, int position) {
+    public void onBindViewHolder(final MyViewHolder holder, final int position) {
         final ActiveChatsRealm topic = list.get(position);
         holder.author.setText(topic.getName());
         Log.d(TAG,"mykey chatlistadapter"+topic.getName());
+
+        isSelectedList.add(false);
 
         holder.messageContainer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,6 +89,27 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
                 ChatHelper.goToChatActivity(context,otherkey,topic.getName(),topic.getProfpic());
             }
         });
+
+        holder.messageContainer.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                    if(isSelectedList.get(position)) {
+                        isSelectedList.set(position, false);
+                        holder.selectedview.setVisibility(View.INVISIBLE);
+                        isAnySelected = -1;
+                    } else {
+                        isSelectedList.set(position, true);
+                        isAnySelected = position;
+                        holder.selectedview.setVisibility(View.VISIBLE);
+                    }
+                return true;
+            }
+        });
+
+        holder.message.setText(topic.getLastmsgbody());
+        holder.timestamp.setText(topic.getLastmsgtime());
+        //holder.message.setText(topic.getLastmsgbody());
+
         applyProfilePicture(holder, topic);
 //        applyLastMessage(holder, topic);
 //        findunreadmsgs(holder, topic);

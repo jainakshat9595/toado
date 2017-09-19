@@ -15,11 +15,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -27,13 +29,20 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.app.toado.R;
+import com.app.toado.activity.ToadoAppCompatActivity;
 import com.app.toado.activity.ToadoBaseActivity;
+import com.app.toado.activity.main.MainAct;
+import com.app.toado.activity.settings.SettingsActivity;
+import com.app.toado.activity.userdetail.UserDetail;
+import com.app.toado.activity.userprofile.UserProfileAct;
 import com.app.toado.adapter.ChatAdapter1;
+import com.app.toado.helper.CallHelper;
 import com.app.toado.helper.ChatHelper;
 import com.app.toado.helper.CircleTransform;
 import com.app.toado.helper.EncryptUtils;
@@ -43,16 +52,28 @@ import com.app.toado.helper.MarshmallowPermissions;
 import com.app.toado.helper.MyXMPP2;
 import com.app.toado.helper.OpenFile;
 import com.app.toado.helper.ThumbnailHelper;
+import com.app.toado.helper.ToadoAlerts;
 import com.app.toado.helper.UriHelper;
+import com.app.toado.model.User;
 import com.app.toado.model.realm.ActiveChatsRealm;
+import com.app.toado.model.realm.ActiveChatsWallpaperRealm;
 import com.app.toado.model.realm.UploadTable;
+import com.app.toado.services.SinchCallService;
 import com.app.toado.settings.UserMediaPrefs;
 import com.app.toado.settings.UserSession;
 import com.app.toado.model.realm.ChatMessageRealm;
 import com.app.toado.services.UploadFileService;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.necistudio.libarary.FilePickerActivity;
 import com.theartofdev.edmodo.cropper.CropImage;
 
@@ -75,6 +96,7 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
+import static com.app.toado.helper.ToadoConfig.DBREF_USER_PROFILES;
 import static com.app.toado.services.UploadFileService.MEDIA_DOWNLOAD_FAILED;
 import static com.app.toado.services.UploadFileService.MEDIA_DOWNLOAD_PROGRESS;
 import static com.app.toado.services.UploadFileService.MEDIA_DOWNLOAD_STARTING;
@@ -83,7 +105,7 @@ import static com.app.toado.services.UploadFileService.MEDIA_PROGRESSING;
 import static com.app.toado.services.UploadFileService.MEDIA_STARTING;
 import static com.app.toado.services.UploadFileService.MEDIA_SUCCESS;
 
-public class ChatActivity extends ToadoBaseActivity {
+public class ChatActivity extends ToadoAppCompatActivity {
     private EditText typeComment;
     private ImageButton attachment, takephoto, imgdocs1, imgdocs2;
     ImageView imgback;
@@ -125,6 +147,7 @@ public class ChatActivity extends ToadoBaseActivity {
     private static final int VIDEO_ATTACH = 22;
     private int PICK_LOC = 33;
     private int PICK_DOCS = 44;
+    private int PICK_WALLPAPER = 152;
     LinearLayout editcontainer;
     RelativeLayout chatlay;
     Boolean bolkeypad = false;
@@ -134,6 +157,12 @@ public class ChatActivity extends ToadoBaseActivity {
     StickyHeaderDecoration stickydecor;
     String[] mimetypes = {"application/pdf", "application/docx", "application/xlsx", "application/pptx", "application/pptx", "application/txt"};
     private RealmResults<UploadTable> result;
+
+    private ImageButton mVideoCallButton, mCallButton, mEmailButton;
+    private String imgurl;
+    private SinchCallService callserv;
+
+    private LinearLayout mUserTitleLay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,6 +196,8 @@ public class ChatActivity extends ToadoBaseActivity {
         otheruserkey = intent.getStringExtra("otheruserkey");
         otherusername = intent.getStringExtra("otherusername");
         profpic = intent.getStringExtra("profpic");
+
+        applyWallpaper();
 
         Log.d(TAG, profpic + "recevier token chat act oncreate" + otheruserkey);
 
@@ -354,6 +385,69 @@ public class ChatActivity extends ToadoBaseActivity {
             }
         });
 */
+
+        mVideoCallButton = (ImageButton) findViewById(R.id.imgvideo);
+        mCallButton = (ImageButton) findViewById(R.id.imgcall);
+
+        mVideoCallButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CallHelper.vidcallbtnClicked(getSinchServiceInterface(), marshmallowPermissions, mykey, mykey, otherusername, imgurl, ChatActivity.this);
+            }
+        });
+
+        mCallButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CallHelper.callbtnClicked(getSinchServiceInterface(), marshmallowPermissions, mykey, mykey, otherusername, imgurl, ChatActivity.this);
+            }
+        });
+
+        mUserTitleLay = (LinearLayout) findViewById(R.id.user_title_lay);
+        mUserTitleLay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), UserDetail.class);
+                intent.putExtra("UserName", otherusername);
+                intent.putExtra("UserKey", otheruserkey);
+                intent.putExtra("UserPicture", profpic);
+                startActivity(intent);
+            }
+        });
+
+        mEmailButton = (ImageButton) findViewById(R.id.imgsettings);
+        mEmailButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final PopupMenu popup = new PopupMenu(getApplicationContext(), findViewById(R.id.imgsettings));
+                popup.getMenuInflater()
+                        .inflate(R.menu.menu_chat, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case (R.id.menu_contact):
+                                Intent intent = new Intent(getApplicationContext(), UserDetail.class);
+                                intent.putExtra("UserName", otherusername);
+                                intent.putExtra("UserKey", otheruserkey);
+                                intent.putExtra("UserPicture", profpic);
+                                startActivity(intent);
+                                break;
+                            case (R.id.menu_media):
+                                break;
+                            case (R.id.menu_email):
+                                selectAll();
+                                break;
+                            case (R.id.menu_wallpaper):
+                                changeWallpaper();
+                                break;
+                        }
+                        return true;
+                    }
+                });
+                popup.show(); //showing popup menu
+            }
+        });
+
     }
 
     private void pickDocs() {
@@ -404,6 +498,33 @@ public class ChatActivity extends ToadoBaseActivity {
         if (!mServiceBound) {
             bindService(intent, muploadserconn, Context.BIND_AUTO_CREATE);
         }
+
+        System.out.println("user key from userprof act" + mykey);
+        if (!mykey.matches("nil"))
+            getOtherUserFirebaseData(mykey);
+        else {
+            System.out.println("no key matches error userprofile act");
+        }
+
+    }
+
+    private void getOtherUserFirebaseData(final String k) {
+        DBREF_USER_PROFILES.child(k).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    System.out.println("user profiles datasnapshot" + dataSnapshot.toString());
+                    User u = User.parse(dataSnapshot);
+                    imgurl = u.getProfpicurl();
+                } else
+                    System.out.println("no snapshot exists userprof act");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void loadData(Boolean t) {
@@ -593,6 +714,8 @@ public class ChatActivity extends ToadoBaseActivity {
                     intent.putExtra("URI", filePath);
                     intent.putExtra("comment_type", "doc");
 //                    startImageComment(intent);
+                } else if (requestCode == PICK_WALLPAPER) {
+                    updateWallpaper(data);
                 }
             }
 
@@ -843,6 +966,119 @@ public class ChatActivity extends ToadoBaseActivity {
             }
         }
     };
+
+    @Override
+    public void onServiceConnected() {
+
+        try {
+            callserv = getSinchServiceInterface().getService();
+            getSinchServiceInterface().startClient(mykey);
+            mServiceBound = true;
+        } catch (NullPointerException e) {
+            //getSinchServiceInterface() in doStuff below throw null pointer error.
+        }
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        mServiceBound = false;
+    }
+
+    private void selectAll() {
+
+        String stringcopy = null;
+
+        for (ChatMessageRealm cm : chatList) {
+            String msgtime = cm.getSenderdate().replace("-2017", "").replace("-", "/") + ", " + cm.getSendertime().replace(" ", "");
+            stringcopy = stringcopy + "\n[" + msgtime + "] " + otherusername + ": " + cm.getMsgstring();
+            Log.d(TAG, "string copy" + stringcopy);
+        }
+
+        Log.d(TAG, "string copyfinal" + stringcopy);
+
+        Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
+                "mailto","", null));
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Whatsapp Chat");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, stringcopy);
+        startActivity(Intent.createChooser(emailIntent, "Send email..."));
+
+    }
+
+    private void applyWallpaper() {
+        RealmResults<ActiveChatsWallpaperRealm> shows = mRealm.where(ActiveChatsWallpaperRealm.class).equalTo("chatref", mykey + otheruserkey).findAll();
+
+        if (shows.size() > 0) {
+            Log.d(TAG, shows.size() + "LOAD DATA CALLED chatactivity " + shows.get(shows.size() - 1).getMsgstring());
+            recyclerView.setVisibility(View.VISIBLE);
+            for (ChatMessageRealm cm : shows) {
+                if (!chatList.contains(cm)) {
+                    chatList.add(cm);
+                    if (!cm.getMsgstatus().matches("3") && !cm.getSenderjid().matches(mykey)) {
+                        ChatMessageRealm cmn = new ChatMessageRealm(cm.getChatref(), otheruserkey, cm.getMsgstring(), cm.getSenderjid(), cm.getSendertime(), cm.getSenderdate(), "status", cm.getMsgid(), "3");
+                        myxinstance.sendMessage(cmn);
+                    }
+                }
+                if (!chatListIds.contains(cm.getMsgid())) {
+                    chatListIds.add(cm.getMsgid());
+                }
+                mAdapter.notifyDataSetChanged();
+            }
+            mAdapter.notifyDataSetChanged();
+
+            if (t)
+                scrollRV();
+
+        } else {
+            Log.d(TAG, "load data called else");
+        }
+    }
+
+    private void changeWallpaper() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Images"), PICK_WALLPAPER);
+    }
+
+    private void updateWallpaper(Intent data) {
+        Uri mImageUri = data.getData();
+        System.out.println("mImageUri: "+mImageUri);
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageRef = storage.getReference();
+        StorageReference wallpaperRef = storageRef.child(mykey).child("wallpaper/"+mImageUri.getLastPathSegment());
+
+        UploadTask uploadTask = wallpaperRef.putFile(mImageUri);
+
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                System.out.println("Image upload task failed");
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Uri downloadUrl = taskSnapshot.getDownloadUrl();
+
+                final ActiveChatsWallpaperRealm activeChatsWallpaperRealm = new ActiveChatsWallpaperRealm(downloadUrl.toString(), mykey+otheruserkey);
+                Realm realm1 = Realm.getDefaultInstance();
+
+                realm1.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        try {
+                            realm.copyToRealmOrUpdate(activeChatsWallpaperRealm);
+                        } catch (Exception e) {
+                            ActiveChatsWallpaperRealm acr = realm.createObject(ActiveChatsWallpaperRealm.class, activeChatsWallpaperRealm.getChatref());
+                            realm.copyToRealmOrUpdate(acr);
+                            e.printStackTrace();
+                        } finally {
+                            realm.close();
+                        }
+                    }
+                });
+            }
+        });
+    }
 
 
 }

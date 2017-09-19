@@ -10,7 +10,7 @@ import android.support.v7.app.AppCompatActivity;
  * Created by ghanendra on 11/06/2017.
  */
 
-public abstract class ToadoBaseActivity extends AppCompatActivity {
+public abstract class ToadoBaseActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

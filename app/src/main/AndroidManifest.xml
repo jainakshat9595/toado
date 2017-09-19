@@ -172,6 +172,11 @@
             android:theme="@style/AppTheme" />
         <activity android:name=".activity.chat.MediaPreviewActivity" />
         <activity android:name=".activity.chat.StarMessageActivity" />
+
+        <activity android:name=".activity.userdetail.UserDetail" />
+
+        <activity android:name=".activity.SharedItems.SharedItemsActivity" />
+
     </application>
 
 </manifest>

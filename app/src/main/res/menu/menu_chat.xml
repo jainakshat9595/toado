@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_contact"
+        android:title="View Contact"/>
+
+    <item
+        android:id="@+id/menu_media"
+        android:title="Media"/>
+
+    <item
+        android:id="@+id/menu_email"
+        android:title="Email Chat"/>
+
+    <item
+        android:id="@+id/menu_wallpaper"
+        android:title="Wallpaper"/>
+
+
+</menu>
